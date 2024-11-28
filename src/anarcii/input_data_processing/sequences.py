@@ -1,0 +1,73 @@
+import torch
+from .tokeniser import Tokenizer
+from .sequences_utils import split_seq, pick_window
+from anarcii.pipeline.anarcii_constants import n_jump
+
+
+class SequenceProcessor:
+    def __init__(self, seqs, model, window_model, verbose):
+        self.seqs = seqs
+        self.model = model
+        self.window_model = window_model
+        self.verbose = verbose
+        
+    def process_sequences(self):
+        # Step 1: Handle long sequences
+        self._handle_long_sequences()
+        
+        # Step 2: Convert dictionary to a list of tuples
+        self._convert_to_tuple_list()
+        
+        # Step 3: Sort sequences by length
+        self._sort_sequences_by_length()
+        
+        # Step 4: Tokenize sequences
+        return self._tokenize_sequences()
+
+    def _handle_long_sequences(self):
+        long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
+
+        if long_seqs:
+            
+            if self.verbose:
+                print("\nLong sequences detected - running in sliding window. This is slow.")
+            
+            # Splits the seqeucne in 90 length chunks
+            split_dict = {key: split_seq(seq) for key, seq in long_seqs.items()}
+            res_dict = {key: pick_window(ls, self.window_model) for key, ls in split_dict.items()}
+
+            for key, value in res_dict.items():
+                # Extract the window but include 30 residues before.
+                # Each window is 90 amino acids in length = 120
+                # Add 130 to capture the whole thing 
+                # This should give a total length of 160 - without skipping the beginning.
+                start_index = max((value * n_jump) - 30, 0)  # Ensures start_index is at least 0
+                end_index = (value * n_jump) + 130
+
+                # Slice the sequence
+                self.seqs[key] = long_seqs[key][start_index:end_index]
+
+            if self.verbose:
+                print("Max probability windows selected.\n")
+            
+    def _convert_to_tuple_list(self):
+        self.seqs = [(i, nm, seq) for i, (nm, seq) in enumerate(self.seqs.items())]
+        
+    def _sort_sequences_by_length(self):
+        self.seqs = sorted(self.seqs, key=lambda x: len(x[2]))
+
+    def _tokenize_sequences(self):
+        aa = self.model.sequence_tokeniser
+        tokenized_seqs = []
+
+        for seq in self.seqs:
+            bookend_seq = [aa.start] + [s for s in seq[2]] + [aa.end]
+            try:
+                tokenized_seq = torch.from_numpy(aa.encode(bookend_seq))
+                tokenized_seqs.append((seq[0], seq[1], tokenized_seq))
+            except KeyError as e:
+                print(f"Sequence could not be numbered. Contains an invalid residue: {e}")
+                tokenized_seqs.append((seq[0], seq[1], torch.from_numpy(aa.encode(["F"]))))
+        
+        return tokenized_seqs
+

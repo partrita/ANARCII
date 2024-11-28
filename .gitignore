@@ -3,6 +3,19 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*.pdb
+*.png
+*.pdf
+*.csv
+*.pq
+*.parquet
+*.fasta
+*.pickle
+*.txt
+*.gz
+*.out
+*.json
+
 # C extensions
 *.so
 
