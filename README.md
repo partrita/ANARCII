@@ -16,7 +16,7 @@ pip install .
 # Installation: GPU only
 
 ```
-conda install numpy
+conda install numpy pandas
 conda install pytorch pytorch-cuda=11.8 -c pytorch -c nvidia
 
 cd ANARCII-DEV
@@ -24,4 +24,4 @@ pip install .
 
 ```
 
-# CMD Line usage.
+# CMD Line usage

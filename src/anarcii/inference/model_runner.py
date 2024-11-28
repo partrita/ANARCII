@@ -160,7 +160,7 @@ class ModelRunner:
                                     break
                                 elif pred_tokens[batch_no, seq_position] == '<SKIP>' and not started: # Append as backfill up to the start.
                                     backfill_seqs.append(
-                                        src_tokens[batch_no, seq_position-1])
+                                        str(src_tokens[batch_no, seq_position-1]))
                                     continue
                                 elif pred_tokens[batch_no, seq_position] == 'X':
                                     x_count += 1
@@ -185,7 +185,7 @@ class ModelRunner:
                                         (int(pred_tokens[batch_no, seq_position]), ' '))
                                     
                                 seqs.append(
-                                    src_tokens[batch_no, seq_position-1])
+                                    str(src_tokens[batch_no, seq_position-1]))
                                 if not started:
                                     start_index = seq_position-2
                                 started = True
@@ -236,7 +236,7 @@ class ModelRunner:
                             # Successful - append.
                             numbering.append(list(zip(nums, seqs)))
                             alignment.append({
-                                    "chain_type": pred_tokens[batch_no, 1],
+                                    "chain_type": str(pred_tokens[batch_no, 1]),
                                     "score": round(normalized_score, 3),
                                     "query_start": start_index,
                                     "query_end": end_index,
