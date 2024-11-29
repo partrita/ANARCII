@@ -1,7 +1,7 @@
 import torch
 from .tokeniser import Tokenizer
 from .sequences_utils import split_seq, pick_window, find_scfvs
-from anarcii.pipeline.anarcii_constants import n_jump
+# from anarcii.pipeline.anarcii_constants import n_jump
 
 
 class SequenceProcessor:
@@ -28,21 +28,22 @@ class SequenceProcessor:
     def _handle_long_sequences(self):
         if self.scfv:
             long_seqs = self.seqs
+            # reset n_jump
+            n_jump = 10
 
-            # Splits the seqeucne in 90 length chunks
-            split_dict = {key: split_seq(seq) for key, seq in long_seqs.items()}
+            # Splits the seqeucne in 90 length chunks - increase jump to 15
+            split_dict = {key: split_seq(seq, n_jump) for key, seq in long_seqs.items()}
             res_dict = {key: find_scfvs(ls, self.window_model) for key, ls in split_dict.items()}
 
             for key, values in res_dict.items():
                 if len(values) > 1:
                     num_peaks = 1
                     for value in values:
-                        # Extract the window but include 30 residues before.
-                        # Each window is 90 amino acids in length = 120
-                        # Add 130 to capture the whole thing 
+                        # Extract the window but include 50 residues before = 50
+                        # Add 110 to capture the whole thing += 110
                         # This should give a total length of 160 - without skipping the beginning.
-                        start_index = max((value * n_jump) - 30, 0)  # Ensures start_index is at least 0
-                        end_index = (value * n_jump) + 130
+                        start_index = max((value * n_jump) - 50, 0)  # Ensures start_index is at least 0
+                        end_index = (value * n_jump) + 110
 
                         # Slice the sequence and update the key reflect multiple chains
                         self.seqs[key + "_" + str(num_peaks)] = long_seqs[key][start_index:end_index]
@@ -53,12 +54,17 @@ class SequenceProcessor:
                     print(key, "split into multiple seqs")    # 2
 
                 else:
-                    value = values[0]
-                    start_index = max((value * n_jump) - 30, 0)  # Ensures start_index is at least 0
-                    end_index = (value * n_jump) + 130
+                    # Extract the window but include 50 residues before = 50
+                    # Add 110 to capture the whole thing += 110
+                    # This should give a total length of 160 - without skipping the beginning.
+                    start_index = max((value * n_jump) - 50, 0)  # Ensures start_index is at least 0
+                    end_index = (value * n_jump) + 110
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]
         else:
+            # larger n_jump
+            n_jump = 10
+
             long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
 
             if long_seqs:            
@@ -66,12 +72,12 @@ class SequenceProcessor:
                     print("\nLong sequences detected - running in sliding window. This is slow.")
                 
                 # Splits the seqeucne in 90 length chunks
-                split_dict = {key: split_seq(seq) for key, seq in long_seqs.items()}
+                split_dict = {key: split_seq(seq, n_jump=n_jump) for key, seq in long_seqs.items()}
                 res_dict = {key: pick_window(ls, self.window_model) for key, ls in split_dict.items()}
 
                 for key, value in res_dict.items():
-                    start_index = max((value * n_jump) - 30, 0)
-                    end_index = (value * n_jump) + 130
+                    start_index = max((value * n_jump) - 50, 0)  # Ensures start_index is at least 0
+                    end_index = (value * n_jump) + 110
 
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]

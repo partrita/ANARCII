@@ -1,9 +1,7 @@
-from anarcii.pipeline.anarcii_constants import n_jump
-
 import torch
 
 
-def split_seq(seq):
+def split_seq(seq, n_jump):
     jump = n_jump
     num = (len(seq)-90) // jump
     ls = [seq[(jump*x):(jump*x + 90)] for x in range(num)]
