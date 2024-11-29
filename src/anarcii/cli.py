@@ -48,12 +48,6 @@ def main():
         action="store_true", 
         help="Enable verbose output."
     )
-    parser.add_argument(
-        "-o", "--output", 
-        type=str, 
-        default=None, 
-        help="Specify the output file (must end in .txt, .csv or .json)."
-    )
     
     # Parse the arguments
     args = parser.parse_args()
@@ -69,29 +63,18 @@ def main():
     )
 
     # Check if the input is a file or a single sequence
-    if args.input.endswith(".fasta") or args.input.endswith(".fa") or args.input.endswith(".fa.gz") or args.input.endswith(".fasta.gz"):
+    if args.input.endswith(".fasta") or args.input.endswith(".fa"):
         print(f"Processing fasta file: {args.input}")
         out = model.number(args.input)
     else:
         print(f"Processing sequence: {args.input}")
         out = model.number([args.input])
 
-    if not args.output:
-        for i in range(len(out)):
-            # Print to screen
-            print(" ID: ", out[i][1]['query_name'], "\n", 
-                "Chain: ", out[i][1]['chain_type'], "\n", 
-                "Score: ", out[i][1]['score'], "\n",
-                "Error: ", out[i][1]['error'])
-            [print(x) for x in out[i][0]]
-    elif args.output.endswith(".csv"):
-        model.to_csv(args.output)
-    elif args.output.endswith(".txt"):
-        model.to_txt(args.output)  
-    elif args.output.endswith(".json"):
-        model.to_json(args.output) 
-    else:
-        raise ValueError("Output file must end in .txt, .csv, or .json.")
+    for i in range(len(out)):
+        print(" ID: ", out[i][1]['query_name'], "\n", 
+              "Chain: ", out[i][1]['chain_type'], "\n", 
+              "Score: ", out[i][1]['score'], "\n")
+        [print(x) for x in out[i][0]]
 
 if __name__ == "__main__":
     main()

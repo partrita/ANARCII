@@ -108,30 +108,29 @@ class ModelRunner:
                     
                     if len(eos_positions[0]) > 0:
                         eos_position = eos_positions[0][0].item()  # Use the first <EOS> position
+                    
+                    else:
+                        # No EOS found
+                        eos_position = trg_len-1
                         
-                        # Exclude insertions from the score calculation. Look only at numbered residues.
-                        valid_indices = [i for i in range(eos_position) if pred_tokens[batch_no, i] not in ['<SOS>', 'X', '<SKIP>']]
-                        if len(valid_indices) >= 50:
-                            valid_scores = scores[batch_no, valid_indices]
-                            normalized_score = valid_scores.mean().item()
-                        elif len(valid_indices) < 50:
-                            normalized_score = 0.0
-                            error_msg = "Less than 50 non insertion residues numbered."
-                        else:
-                            normalized_score = 0.0
-                            error_msg = "No valid indices found."
+                    # Exclude insertions from the score calculation. Look only at numbered residues.
+                    valid_indices = [i for i in range(eos_position) if pred_tokens[batch_no, i] in [str(x) for x in range(1,128)]]
 
+                    if len(valid_indices) >= 50:
                         valid_scores = scores[batch_no, valid_indices]
                         normalized_score = valid_scores.mean().item()
-
-                    else:
-                        # If no EOS is found - break here,
+                    elif len(valid_indices) < 50:
                         normalized_score = 0.0
-                        error_msg = "No <EOS> found."
+                        error_msg = "Less than 50 non-insertion residues numbered."
+                    else:
+                        normalized_score = 0.0
+                        error_msg = "No valid indices found."
 
+                    valid_scores = scores[batch_no, valid_indices]
+                    normalized_score = valid_scores.mean().item()
 
                     # This is the antibody cutoff - need a new one for TCRS
-                    if round(normalized_score, 3) < 17.5:
+                    if round(normalized_score, 3) < 15.0:
                         numbering.append([])
 
                         alignment.append({
@@ -160,7 +159,7 @@ class ModelRunner:
                                     break
                                 elif pred_tokens[batch_no, seq_position] == '<SKIP>' and not started: # Append as backfill up to the start.
                                     backfill_seqs.append(
-                                        str(src_tokens[batch_no, seq_position-1]))
+                                        src_tokens[batch_no, seq_position-1])
                                     continue
                                 elif pred_tokens[batch_no, seq_position] == 'X':
                                     x_count += 1
@@ -185,7 +184,7 @@ class ModelRunner:
                                         (int(pred_tokens[batch_no, seq_position]), ' '))
                                     
                                 seqs.append(
-                                    str(src_tokens[batch_no, seq_position-1]))
+                                    src_tokens[batch_no, seq_position-1])
                                 if not started:
                                     start_index = seq_position-2
                                 started = True
@@ -236,7 +235,7 @@ class ModelRunner:
                             # Successful - append.
                             numbering.append(list(zip(nums, seqs)))
                             alignment.append({
-                                    "chain_type": str(pred_tokens[batch_no, 1]),
+                                    "chain_type": pred_tokens[batch_no, 1],
                                     "score": round(normalized_score, 3),
                                     "query_start": start_index,
                                     "query_end": end_index,

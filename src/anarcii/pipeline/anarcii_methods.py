@@ -1,4 +1,4 @@
-import torch, ast, shutil
+import ast, json
 
 from anarcii.output_data_processing.list_to import write_csv, write_text, write_json, return_dict, return_imgt_regions
 
@@ -28,7 +28,24 @@ def to_text(self, file_path):
         raise ValueError("No output to save. Run the model first.")
     
     if self.max_len_exceed:
-        shutil.copy2(self.text_, file_path)
+        # The reads and writes line by line and hence saves RAM
+        with open(self.text_, "r") as infile, open(file_path, "w") as outfile:
+            for line in infile:
+                # Parse the line safely using ast.literal_eval
+                try:
+                    sublist = ast.literal_eval(line.strip())
+                except (ValueError, SyntaxError) as e:
+                    print(f"Skipping invalid line: {line.strip()}")
+                    continue
+
+                nums = sublist[0]
+                name = sublist[1].get('query_name', 'Unknown')
+                chain = sublist[1].get('chain_type', 'Unknown')
+                score = sublist[1].get('score', 'Unknown')
+
+                # Write the processed line to the output file
+                outfile.write(f"{name}, {chain}, {score}, {repr(nums)}\n")
+        print(f"Last output saved to {file_path}")
 
     else:
         write_text(self._last_numbered_output, file_path)
@@ -42,6 +59,7 @@ def to_csv(self, file_path):
         raise ValueError("No output to save. Run the model first.")
     
     if self.max_len_exceed:
+        print("Writing to a aligned CSV file may use a lot of RAM for millions of sequences, consider to_text(filepath) or to_json(filepath) for memory efficient solutions.")
         with open(self.text_, "r") as file:
             loaded_data = [ast.literal_eval(line.strip()) for line in file]
             
@@ -60,10 +78,28 @@ def to_json(self, file_path):
         raise ValueError("No output to save. Run the model first.")
     
     if self.max_len_exceed:
-        with open(self.text_, "r") as file:
-            loaded_data = [ast.literal_eval(line.strip()) for line in file]
+        with open(self.text_, "r") as infile, open(file_path, "w") as outfile:
+            # Start the JSON array
+            outfile.write("[\n")
             
-        write_json(loaded_data, file_path)
+            first = True  # To manage commas between JSON objects
+            for line in infile:
+                try:
+                    # Parse each line safely
+                    data = ast.literal_eval(line.strip())
+                except (ValueError, SyntaxError) as e:
+                    print(f"Skipping invalid line: {line.strip()}")
+                    continue
+                
+                # Write the parsed line as JSON, adding commas where needed
+                if not first:
+                    outfile.write(",\n")
+                first = False
+                json.dump(data, outfile)
+            
+            # End the JSON array
+            outfile.write("\n]\n")
+        
         print(f"Last output saved to {file_path}")
         
     else:

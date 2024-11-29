@@ -37,3 +37,6 @@ Specify parameters to capture output to a text, csv, or json file.
 ```
 anarcii ./notebook/example_data/monoclonals_clean.fasta.gz -o my_numbered_seqs.csv
 ```
+
+
+Number a PDB file.
