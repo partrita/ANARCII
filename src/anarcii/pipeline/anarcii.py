@@ -25,7 +25,7 @@ class Anarcii:
     def __init__(self,
                  seq_type: str = "antibody",
                  mode: str = "accuracy",
-                 scfv_or_concatenated_chains: bool = "False", # For use with SCFVs or artificial constructs
+                 scfv_or_concatenated_chains: bool = False, # For use with SCFVs or artificial constructs
                  batch_size: int = 8,
                  cpu: bool = False,
                  ncpu: int = -1,
@@ -62,17 +62,17 @@ class Anarcii:
         self.shark_model = ModelRunner("shark", 
                                     self.mode, self.batch_size, self.device, self.verbose)
         self.shark_window = WindowFinder("shark",
-                                      self.mode, self.batch_size, self.device)
+                                      self.mode, self.batch_size, self.device, self.scfv)
         # Antibody model
         self.ig_model = ModelRunner("antibody", 
                                     self.mode, self.batch_size, self.device, self.verbose)
         self.ig_window = WindowFinder("antibody",
-                                      self.mode, self.batch_size, self.device)
+                                      self.mode, self.batch_size, self.device, self.scfv)
         # TCR model
         self.tcr_model = ModelRunner("tcr",
                                      self.mode, self.batch_size, self.device, self.verbose)
         self.tcr_window = WindowFinder("tcr",
-                                       self.mode, self.batch_size, self.device)
+                                       self.mode, self.batch_size, self.device, self.scfv)
         
 
     def number(self, seqs):
@@ -217,7 +217,7 @@ class Anarcii:
 
         else:
             # instantiate the Sequences class and process
-            sequences = SequenceProcessor(list_of_seqs, model, window_model, self.verbose)
+            sequences = SequenceProcessor(list_of_seqs, model, window_model, self.verbose, self.scfv)
             processed_seqs = sequences.process_sequences()
 
             # ==============================================================================

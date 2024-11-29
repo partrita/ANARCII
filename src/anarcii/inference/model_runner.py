@@ -47,6 +47,7 @@ class ModelRunner:
         
         seqs_only = [t[2] for t in list_of_tuples]
         names_only = [t[1] for t in list_of_tuples]
+        print(names_only)
         indices = [t[0] for t in list_of_tuples]
 
         dl = dataloader(self.batch_size, seqs_only)
