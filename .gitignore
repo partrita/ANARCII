@@ -13,6 +13,8 @@ __pycache__/
 *.txt
 *.out
 *.json
+*.pdb
+*.gz
 
 # C extensions
 *.so

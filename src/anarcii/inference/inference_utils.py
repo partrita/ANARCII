@@ -25,8 +25,8 @@ def floating_pad(list_of_lists, batch_size):
 def dataloader(batch_size, ls):
     padded = floating_pad(ls, batch_size)
     dldr = DataLoader(padded,
-                        batch_size=batch_size,
-                        shuffle=False)
+                      batch_size=batch_size,
+                      shuffle=False)
     return dldr
 
 

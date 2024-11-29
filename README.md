@@ -40,3 +40,6 @@ anarcii ./notebook/example_data/monoclonals_clean.fasta.gz -o my_numbered_seqs.c
 
 
 Number a PDB file.
+``` 
+anarcii ./notebook/example_data/1kb5.pdb
+```

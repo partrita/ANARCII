@@ -190,10 +190,10 @@ class Anarcii:
         elif isinstance(seqs, str) and os.path.exists(seqs) and (".pdb" in seqs or ".mmcif" in seqs):
             # This makes an infinite loop if unknown >>> Need to separate it out.
             numbered_chains = renumber_pdb_with_anarcii(seqs,
-                                                        seq_type=self.seq_type,
-                                                        mode=self.mode,
-                                                        batch_size=self.batch_size,
-                                                        cpu=self.cpu)
+                                                        inner_seq_type=self.seq_type,
+                                                        inner_mode=self.mode,
+                                                        inner_batch_size=self.batch_size,
+                                                        inner_cpu=self.cpu)
             return numbered_chains
 
 

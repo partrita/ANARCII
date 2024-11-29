@@ -3,10 +3,10 @@ import os
 from .pdb_utils import *
 
 def renumber_pdb_with_anarcii(file_path,
-                              seq_type: str = "antibody",
-                              mode: str = "accuracy",
-                              batch_size: int = 4,
-                              cpu: bool = False):
+                              inner_seq_type: str = "antibody",
+                              inner_mode: str = "accuracy",
+                              inner_batch_size: int = 4,
+                              inner_cpu: bool = False):
     """
     Renumber PDB files
 
@@ -14,9 +14,12 @@ def renumber_pdb_with_anarcii(file_path,
     - file_path (str): Directory containing input PDB files.
     """
     from anarcii import Anarcii
-    inner_model = Anarcii(seq_type, mode, batch_size, cpu, verbose=False)
+    inner_model = Anarcii(seq_type=inner_seq_type, 
+                          mode=inner_mode, 
+                          batch_size=inner_batch_size, 
+                          cpu=inner_cpu, 
+                          verbose=False)
 
-    print(seq_type)
 
     out_name = file_path.replace(".pdb", "_anarcii.pdb")
     try:
@@ -52,7 +55,6 @@ def renumber_pdb_with_anarcii(file_path,
                 sequence = sequence[:190]
 
             seq = [(chain_id, sequence)]
-
             result = inner_model.number(seq)
             nums, alignment = result[0]
             chain_call = alignment['chain_type']
