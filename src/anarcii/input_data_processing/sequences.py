@@ -5,7 +5,7 @@ from anarcii.pipeline.anarcii_constants import n_jump
 
 
 class SequenceProcessor:
-    def __init__(self, seqs, model, window_model, verbose, scfv):
+    def __init__(self, seqs, model, window_model, verbose, scfv=False):
         self.seqs = seqs
         self.model = model
         self.window_model = window_model
