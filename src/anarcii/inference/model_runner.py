@@ -117,15 +117,14 @@ class ModelRunner:
                         eos_position = trg_len-1
                     
                     # Do you need to worry about padding?
-                    mask = (pred_tokens[batch_no, :eos_position] != '<SKIP>')
-                    valid_indices = torch.arange(eos_position)[mask]
+                    valid_indices = [i for i in range(eos_position) if pred_tokens[batch_no, i] not in ['<SKIP>', 'X', '<PAD>']]
 
                     valid_scores = scores[batch_no, valid_indices]
                     if len(valid_indices) >= 50:
                         normalized_score = valid_scores.mean().item()
                     else:
                         normalized_score = 0.0
-                        error_msg = "Less than 50 residues numbered."
+                        error_msg = "Less than 50 non insertion residues numbered."
 
 
                     # This is the antibody cutoff - need a new one for TCRS
