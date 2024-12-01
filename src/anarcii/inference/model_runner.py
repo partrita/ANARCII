@@ -23,6 +23,9 @@ class ModelRunner:
         self.device = device
         self.verbose = verbose
 
+        # Create the tokens as tensors...
+        # Worry about padding...
+
         if self.type in ["antibody", "shark"]:
             self.sequence_tokeniser = Tokenizer("protein_antibody")
             self.number_tokeniser = Tokenizer("number_antibody")
@@ -94,7 +97,8 @@ class ModelRunner:
 
                 src_tokens = self.sequence_tokeniser.tokens[src[:, :trg_len].to("cpu")]
                 pred_tokens = self.number_tokeniser.tokens[max_input[:, :trg_len].to("cpu")]
-                scores = output.topk(1, dim=2).values[:, :trg_len].to("cpu")
+
+                scores = output.topk(1, dim=2).values[:, :trg_len]
 
                 # New code plan: Preallocte to numpy array.
                 # Place at designated positions in the numpy array >>> Process an entire output string, read from a text file. 
@@ -111,22 +115,18 @@ class ModelRunner:
                     else:
                         # No EOS found
                         eos_position = trg_len-1
-                        
-                    # Exclude insertions from the score calculation. Look only at numbered residues.
-                    valid_indices = [i for i in range(eos_position) if pred_tokens[batch_no, i] in [str(x) for x in range(1,128)]]
-
-                    if len(valid_indices) >= 50:
-                        valid_scores = scores[batch_no, valid_indices]
-                        normalized_score = valid_scores.mean().item()
-                    elif len(valid_indices) < 50:
-                        normalized_score = 0.0
-                        error_msg = "Less than 50 non-insertion residues numbered."
-                    else:
-                        normalized_score = 0.0
-                        error_msg = "No valid indices found."
+                    
+                    # Do you need to worry about padding?
+                    mask = (pred_tokens[batch_no, :eos_position] != '<SKIP>')
+                    valid_indices = torch.arange(eos_position)[mask]
 
                     valid_scores = scores[batch_no, valid_indices]
-                    normalized_score = valid_scores.mean().item()
+                    if len(valid_indices) >= 50:
+                        normalized_score = valid_scores.mean().item()
+                    else:
+                        normalized_score = 0.0
+                        error_msg = "Less than 50 residues numbered."
+
 
                     # This is the antibody cutoff - need a new one for TCRS
                     if round(normalized_score, 3) < 15.0:

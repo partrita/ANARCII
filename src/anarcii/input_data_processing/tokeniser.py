@@ -63,3 +63,11 @@ class Tokenizer:
         integer_encoded = np.array([self.char_to_int[char]
                                    for char in ls], dtype=np.int32)
         return integer_encoded
+
+    # def encode(self, sequences):
+    #     if isinstance(sequences, str):  # Single sequence
+    #         return np.array([self.char_to_int[char] for char in sequences], dtype=np.int32)
+    #     elif isinstance(sequences, list):  # Batch of sequences
+    #         return [np.array([self.char_to_int[char] for char in seq], dtype=np.int32) for seq in sequences]
+    #     else:
+    #         raise ValueError("Input must be a string or a list of strings")
