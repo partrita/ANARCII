@@ -23,9 +23,6 @@ class ModelRunner:
         self.device = device
         self.verbose = verbose
 
-        # Create the tokens as tensors...
-        # Worry about padding...
-
         if self.type in ["antibody", "shark"]:
             self.sequence_tokeniser = Tokenizer("protein_antibody")
             self.number_tokeniser = Tokenizer("number_antibody")
@@ -35,6 +32,13 @@ class ModelRunner:
             self.number_tokeniser = Tokenizer("number_tcr")
         else:
             raise ValueError(f"Invalid model type: {self.type}")
+        
+        # Initialise the tokens here and place on the device
+        self.pad_token = torch.tensor(self.number_tokeniser.encode(['<PAD>'])).unsqueeze(0).to(self.device)
+        self.sos_token = torch.tensor(self.number_tokeniser.encode(['<SOS>'])).unsqueeze(0).to(self.device)
+        self.eos_token = torch.tensor(self.number_tokeniser.encode(['<EOS>'])).unsqueeze(0).to(self.device)
+        self.skip_token = torch.tensor(self.number_tokeniser.encode(['<SKIP>'])).unsqueeze(0).to(self.device)
+        self.x_token = torch.tensor(self.number_tokeniser.encode(['X'])).unsqueeze(0).to(self.device)
 
         self.model = self._load_model()
 
@@ -68,6 +72,13 @@ class ModelRunner:
         num = 0
         batch = 1
 
+        pad_token = self.pad_token
+        sos_token = self.sos_token
+        eos_token = self.eos_token
+        skip_token = self.skip_token
+        x_token = self.x_token
+        
+
         with torch.no_grad():
             for X in dl:
                 batch += 1
@@ -95,10 +106,26 @@ class ModelRunner:
                     max_input[:, t:t+1] = pred_token
                     input = max_input[:, :t+1]
 
-                src_tokens = self.sequence_tokeniser.tokens[src[:, :trg_len].to("cpu")]
-                pred_tokens = self.number_tokeniser.tokens[max_input[:, :trg_len].to("cpu")]
+                # tokenise and transfer the batch to cpu
+                src_tokens = self.sequence_tokeniser.tokens[src.to("cpu")]
+                pred_tokens = self.number_tokeniser.tokens[max_input.to("cpu")]
 
                 scores = output.topk(1, dim=2).values[:, :trg_len]
+                scores = scores.squeeze(-1)  # Remove the last dimension; shape becomes [batch_size, trg_len]
+
+                mask = (max_input != skip_token) & \
+                    (max_input != x_token) & \
+                    (max_input != pad_token) & \
+                    (max_input != sos_token)
+                
+                # Find the first occurrence of `True` (eos_token) along the last dimension (trg_len)
+                eos_positions = max_input == eos_token
+                # Get the indices of the first occurrence of True along dimension 1 (trg_len), for each batch
+                first_eos_positions = torch.argmax(eos_positions.to(torch.int64), dim=1)
+                # Check if no EOS token is found for each batch
+                no_eos_found = ~(eos_positions.any(dim=1))  # True if no EOS token is found in the row
+                # Set the position to trg_len if no EOS is found
+                first_eos_positions[no_eos_found] = eos_positions.size(1)  # trg_len is the second dimension
 
                 # New code plan: Preallocte to numpy array.
                 # Place at designated positions in the numpy array >>> Process an entire output string, read from a text file. 
@@ -106,20 +133,23 @@ class ModelRunner:
                     num += 1
                     error_msg = None                 
 
-                    # Ensure the score is calculated for numbered positions only.
-                    eos_positions = (pred_tokens[batch_no] == '<EOS>').nonzero()
+                    # # Ensure the score is calculated for numbered positions only.
+                    # eos_positions = (max_input[batch_no] == eos_token).nonzero()
+                    # eos_position = eos_positions[0, 1] if eos_positions.size(0) > 0 else trg_len - 1
                     
-                    if len(eos_positions[0]) > 0:
-                        eos_position = eos_positions[0][0].item()  # Use the first <EOS> position
-                    
-                    else:
-                        # No EOS found
-                        eos_position = trg_len-1
-                    
-                    # Do you need to worry about padding?
-                    valid_indices = [i for i in range(eos_position) if pred_tokens[batch_no, i] not in ['<SKIP>', 'X', '<PAD>']]
+                    # mask = (max_input[batch_no, :eos_position] != skip_token) & \
+                    #     (max_input[batch_no, :eos_position] != x_token) & \
+                    #     (max_input[batch_no, :eos_position] != pad_token) & \
+                    #     (max_input[batch_no, :eos_position] != sos_token)
+                          
+                    # mask = mask.squeeze(0)  # Ensure mask has shape [eos_position]
+                    # print(mask[batch_no, :eos_position].shape)
 
+                    eos_position = first_eos_positions[batch_no]
+
+                    valid_indices = torch.arange(eos_position, device=self.device)[mask[batch_no, :eos_position]]
                     valid_scores = scores[batch_no, valid_indices]
+
                     if len(valid_indices) >= 50:
                         normalized_score = valid_scores.mean().item()
                     else:
@@ -147,21 +177,28 @@ class ModelRunner:
                         start_index = None
                         end_index = None
 
+                        if isinstance(eos_position, torch.Tensor):
+                            eos_position = eos_position.item()
+
                         try:
-                            for seq_position in range(2, trg_len):
-                                if pred_tokens[batch_no, seq_position] == '<EOS>' or src_tokens[batch_no, seq_position-1] == '<EOS>':
+                            for seq_position in range(2, eos_position):
+                                if src_tokens[batch_no, seq_position-1] == '<EOS>':
                                     end_index = seq_position-3
                                     break
+
                                 elif pred_tokens[batch_no, seq_position] == '<SKIP>' and started: # Break if hitting a skip post at the end.
                                     end_index = seq_position-3
                                     break
+
                                 elif pred_tokens[batch_no, seq_position] == '<SKIP>' and not started: # Append as backfill up to the start.
                                     backfill_seqs.append(
                                         str(src_tokens[batch_no, seq_position-1]))
                                     continue
+
                                 elif pred_tokens[batch_no, seq_position] == 'X':
                                     x_count += 1
                                     in_x_run = True
+
                                 elif pred_tokens[batch_no, seq_position].isdigit() and in_x_run:
                                     construction = build_inward_list(length=x_count,
                                                                      # number before X began
@@ -186,6 +223,11 @@ class ModelRunner:
                                 if not started:
                                     start_index = seq_position-2
                                 started = True
+
+                            if not end_index:
+                                end_index = eos_position-3
+                                # eos_position - 1: Moves to the token before <EOS>, excluding the <EOS> marker itself.
+                                # Subtracting an additional 1 for SOS and 1 for CLS: Adjusts further to skip over these two tokens.
 
                             # Backfill >>>>
                             try:
