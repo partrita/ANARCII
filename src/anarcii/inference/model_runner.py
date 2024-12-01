@@ -125,7 +125,7 @@ class ModelRunner:
                 # Check if no EOS token is found for each batch
                 no_eos_found = ~(eos_positions.any(dim=1))  # True if no EOS token is found in the row
                 # Set the position to trg_len if no EOS is found
-                first_eos_positions[no_eos_found] = eos_positions.size(1)  # trg_len is the second dimension
+                first_eos_positions[no_eos_found] = torch.tensor(trg_len - 1, device=self.device)
 
                 # New code plan: Preallocte to numpy array.
                 # Place at designated positions in the numpy array >>> Process an entire output string, read from a text file. 
@@ -177,8 +177,7 @@ class ModelRunner:
                         start_index = None
                         end_index = None
 
-                        if isinstance(eos_position, torch.Tensor):
-                            eos_position = eos_position.item()
+                        eos_position = eos_position.item()
 
                         try:
                             for seq_position in range(2, eos_position):
