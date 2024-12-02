@@ -6,37 +6,70 @@ from ..input_data_processing.tokeniser import Tokenizer
 
 import torch
 
-def detect_peaks(data, threshold=32.5):
+import matplotlib.pyplot as plt
 
+def detect_peaks(data, threshold=35, min_distance=65):
     peaks = []
     peak_values = []
+    
+    for i in range(1, len(data) - 1):
+        # Check if current point is a peak above the threshold
+        if data[i] > data[i - 1] and data[i] > data[i + 1] and data[i] > threshold:
+            # Ensure a minimum distance from the last detected peak
+            if len(peaks) == 0 or (i - peaks[-1] >= min_distance):
+                peaks.append(i)
+                peak_values.append(data[i])
+    
+    print("Number of high scoring chains found: ", len(peaks), "\n",
+          "Indices: ", peaks, "\n",
+          "Values: ", peak_values)
+    
+    # Plot the data and peaks
+    plt.figure(figsize=(10, 6))
+    plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
+    plt.axhline(y=threshold, color='r', linestyle='--', label=f'Threshold ({threshold})')
+    plt.scatter(peaks, [data[i] for i in peaks], color='orange', label='Detected Peaks', zorder=5)
+    plt.title("Data with Potential Peaks")
+    plt.xlabel("Index")
+    plt.ylabel("Score of window")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    return peaks
 
-    in_peak = False
-    current_peak_value = None
-    current_peak_index = None
 
-    for i in range(1, len(data)):
-        # Handle the last point
-        is_last_point = i == len(data) - 1
+# def detect_peaks(data, threshold=35):
 
-        # Check if current point is a peak
-        if not is_last_point and data[i] > data[i - 1] and data[i] > data[i + 1] and data[i] > threshold:
-            if not in_peak:
-                # Start of a new peak
-                in_peak = True
-                current_peak_value = data[i]
-                current_peak_index = i
-            else:
-                # Update peak if current value is higher
-                if data[i] > current_peak_value:
-                    current_peak_value = data[i]
-                    current_peak_index = i
-        elif in_peak and (is_last_point or data[i] <= threshold or data[i] < data[i - 1]):
-            # End of a peak or at the last point
-            peaks.append(current_peak_index)
-            peak_values.append(current_peak_value)
-            in_peak = False
-            current_peak_value = None
+#     peaks = []
+#     peak_values = []
+
+#     in_peak = False
+#     current_peak_value = None
+#     current_peak_index = None
+
+#     for i in range(1, len(data)):
+#         # Handle the last point
+#         is_last_point = i == len(data) - 1
+
+#         # Check if current point is a peak
+#         if not is_last_point and data[i] > data[i - 1] and data[i] > data[i + 1] and data[i] > threshold:
+#             if not in_peak:
+#                 # Start of a new peak
+#                 in_peak = True
+#                 current_peak_value = data[i]
+#                 current_peak_index = i
+#             else:
+#                 # Update peak if current value is higher
+#                 if data[i] > current_peak_value:
+#                     current_peak_value = data[i]
+#                     current_peak_index = i
+#         elif in_peak and (is_last_point or data[i] <= threshold or data[i] < data[i - 1]):
+#             # End of a peak or at the last point
+#             peaks.append(current_peak_index)
+#             peak_values.append(current_peak_value)
+#             in_peak = False
+#             current_peak_value = None
 
     print("Number of high scoring chains found: ", len(peaks), "\n",
           "Indices: ", peaks, "\n",
@@ -44,7 +77,10 @@ def detect_peaks(data, threshold=32.5):
     
     plt.figure(figsize=(10, 6))
     plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
-    plt.axhline(y=32.5, color='r', linestyle='--', label='Threshold (25)')
+    plt.axhline(y=threshold, 
+                color='r', 
+                linestyle='--', 
+                label=f'Threshold ({threshold})')
     plt.title("Data with Potential Peaks")
     plt.xlabel("Index")
     plt.ylabel("Score of window")
@@ -117,6 +153,11 @@ class WindowFinder:
             if self.scfv:
                 # print(preds)
                 indices = detect_peaks(preds)
-                return indices
+
+                if len(indices) > 0:
+                    return indices
+                else:
+                    # print(preds.index(max(preds)))
+                    return [preds.index(max(preds))]
 
             return preds.index(max(preds))

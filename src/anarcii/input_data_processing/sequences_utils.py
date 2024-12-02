@@ -1,10 +1,10 @@
 import torch
 
 
-def split_seq(seq, n_jump):
+def split_seq(seq, n_jump, window_size=90):
     jump = n_jump
-    num = (len(seq)-90) // jump
-    ls = [seq[(jump*x):(jump*x + 90)] for x in range(num)]
+    num = (len(seq)-window_size) // jump
+    ls = [seq[(jump*x):(jump*x + window_size)] for x in range(num)]
     return ls
 
 def pick_window(list_of_seqs, model):
