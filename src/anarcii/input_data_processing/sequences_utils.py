@@ -7,6 +7,7 @@ def split_seq(seq, n_jump, window_size=90):
     ls = [seq[(jump*x):(jump*x + window_size)] for x in range(num)]
     return ls
 
+
 def pick_window(list_of_seqs, model):
     # Find the index of the highest scoring window
     aa = model.sequence_tokeniser
@@ -24,6 +25,7 @@ def pick_window(list_of_seqs, model):
 
     max_index = model(ls)
     return max_index
+
 
 def find_scfvs(list_of_seqs, model):
     # Returns a list of indices of the peaks.

@@ -8,6 +8,12 @@ import torch
 
 import matplotlib.pyplot as plt
 
+def first_index_above_threshold(preds, threshold=30):
+    for i, val in enumerate(preds):
+        if val > threshold:
+            return i
+    return None 
+
 def detect_peaks(data, threshold=35, min_distance=65):
     peaks = []
     peak_values = []
@@ -151,13 +157,11 @@ class WindowFinder:
 
             # return the index of the max
             if self.scfv:
-                # print(preds)
                 indices = detect_peaks(preds)
 
                 if len(indices) > 0:
                     return indices
                 else:
-                    # print(preds.index(max(preds)))
-                    return [preds.index(max(preds))]
+                    return [first_index_above_threshold(preds)]
 
-            return preds.index(max(preds))
+            return first_index_above_threshold(preds)
