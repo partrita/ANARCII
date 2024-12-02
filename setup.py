@@ -11,7 +11,7 @@ setup(
             "anarcii=anarcii.cli:main",
         ],
     },
-    description='A sequence numbering tool called ANARCII that ',
+    description='A sequence numbering tool called ANARCII that...',
     author='AlexGW',
     author_email='GreenshieldsWatsonAL@gmail.com',
     package_data={
