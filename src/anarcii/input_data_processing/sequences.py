@@ -57,16 +57,13 @@ class SequenceProcessor:
 
                 else:
                     value = values[0]
-                    # Extract the window but include 50 residues before = 50
-                    # Add 110 to capture the whole thing += 110
-                    # This should give a total length of 160 - without skipping the beginning.
-                    start_index = max((value * n_jump) - 50, 0)  # Ensures start_index is at least 0
-                    end_index = (value * n_jump) + 110
+                    start_index = max((value * n_jump) - 20, 0)  # Ensures start_index is at least 0
+                    end_index = (value * n_jump) + 120
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]
         else:
             # larger n_jump
-            n_jump = 10
+            n_jump = 5
 
             long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
 
@@ -79,8 +76,8 @@ class SequenceProcessor:
                 res_dict = {key: pick_window(ls, self.window_model) for key, ls in split_dict.items()}
 
                 for key, value in res_dict.items():
-                    start_index = max((value * n_jump) - 50, 0)  # Ensures start_index is at least 0
-                    end_index = (value * n_jump) + 110
+                    start_index = max((value * n_jump) - 20, 0)  # Ensures start_index is at least 0
+                    end_index = (value * n_jump) + 120
 
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]
