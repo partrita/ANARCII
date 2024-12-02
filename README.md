@@ -5,7 +5,13 @@ Internal version of ANARCII package for antibody group.
 # Installation: CPU only
 
 ```
+# Start with a fresh env and always install numpy first!
+
+# SciPy causes known issues at present - do not install SciPy in this env (seems to conflict)
+
 conda install numpy
+conda install pandas
+conda install matplotlib
 conda install pytorch cpuonly -c pytorch
 
 cd ANARCII-DEV
@@ -16,7 +22,13 @@ pip install .
 # Installation: GPU only
 
 ```
-conda install numpy pandas
+# Start with a fresh env and always install numpy first!
+
+# SciPy causes known issues at present - do not install SciPy in this env (seems to conflict)
+
+conda install numpy
+conda install pandas
+conda install matplotlib
 conda install pytorch pytorch-cuda=11.8 -c pytorch -c nvidia
 
 cd ANARCII-DEV
