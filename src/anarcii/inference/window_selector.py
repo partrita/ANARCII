@@ -8,7 +8,7 @@ import torch
 
 import matplotlib.pyplot as plt
 
-def first_index_above_threshold(preds, threshold=30):
+def first_index_above_threshold(preds, threshold=35):
     for i, val in enumerate(preds):
         if val > threshold:
             return i
