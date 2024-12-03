@@ -1,6 +1,6 @@
 from .inference_utils import dataloader
 from .model_loader import Loader
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from ..input_data_processing.tokeniser import Tokenizer
 
@@ -30,70 +30,18 @@ def detect_peaks(data, threshold=35, min_distance=65):
           "Indices: ", peaks, "\n",
           "Values: ", peak_values)
     
-    # Plot the data and peaks
-    plt.figure(figsize=(10, 6))
-    plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
-    plt.axhline(y=threshold, color='r', linestyle='--', label=f'Threshold ({threshold})')
-    plt.scatter(peaks, [data[i] for i in peaks], color='orange', label='Detected Peaks', zorder=5)
-    plt.title("Data with Potential Peaks")
-    plt.xlabel("Index")
-    plt.ylabel("Score of window")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    # # Plot the data and peaks
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
+    # plt.axhline(y=threshold, color='r', linestyle='--', label=f'Threshold ({threshold})')
+    # plt.scatter(peaks, [data[i] for i in peaks], color='orange', label='Detected Peaks', zorder=5)
+    # plt.title("Data with Potential Peaks")
+    # plt.xlabel("Index")
+    # plt.ylabel("Score of window")
+    # plt.legend()
+    # plt.grid(True)
+    # plt.show()
     
-    return peaks
-
-
-# def detect_peaks(data, threshold=35):
-
-#     peaks = []
-#     peak_values = []
-
-#     in_peak = False
-#     current_peak_value = None
-#     current_peak_index = None
-
-#     for i in range(1, len(data)):
-#         # Handle the last point
-#         is_last_point = i == len(data) - 1
-
-#         # Check if current point is a peak
-#         if not is_last_point and data[i] > data[i - 1] and data[i] > data[i + 1] and data[i] > threshold:
-#             if not in_peak:
-#                 # Start of a new peak
-#                 in_peak = True
-#                 current_peak_value = data[i]
-#                 current_peak_index = i
-#             else:
-#                 # Update peak if current value is higher
-#                 if data[i] > current_peak_value:
-#                     current_peak_value = data[i]
-#                     current_peak_index = i
-#         elif in_peak and (is_last_point or data[i] <= threshold or data[i] < data[i - 1]):
-#             # End of a peak or at the last point
-#             peaks.append(current_peak_index)
-#             peak_values.append(current_peak_value)
-#             in_peak = False
-#             current_peak_value = None
-
-    print("Number of high scoring chains found: ", len(peaks), "\n",
-          "Indices: ", peaks, "\n",
-          "Values: ", peak_values)
-    
-    plt.figure(figsize=(10, 6))
-    plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
-    plt.axhline(y=threshold, 
-                color='r', 
-                linestyle='--', 
-                label=f'Threshold ({threshold})')
-    plt.title("Data with Potential Peaks")
-    plt.xlabel("Index")
-    plt.ylabel("Score of window")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
     return peaks
 
 

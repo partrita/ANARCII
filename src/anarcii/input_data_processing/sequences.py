@@ -28,7 +28,7 @@ class SequenceProcessor:
     def _handle_long_sequences(self):
         if self.scfv:
             long_seqs = self.seqs
-            # reset n_jump
+            # Jump of 2 to provide a granulary probability view.
             n_jump = 2
 
             # Splits the seqeucne in 60 length chunks - for granularity
@@ -40,10 +40,10 @@ class SequenceProcessor:
                     num_peaks = 1
                     for value in values:
                         # Extract the window but include residues before = 20
-                        # Add 110 to capture the whole thing += 120
-                        # This should give a total length of 140 - without skipping the beginning.
+                        # Add 110 to capture the whole thing += 140
+                        # This should give a total length of 160 - without skipping the beginning.
                         start_index = max((value * n_jump) - 20, 0)  # Ensures start_index is at least 0
-                        end_index = (value * n_jump) + 120
+                        end_index = (value * n_jump) + 140
 
                         print(long_seqs[key][start_index:end_index])
 
@@ -58,12 +58,12 @@ class SequenceProcessor:
                 else:
                     value = values[0]
                     start_index = max((value * n_jump) - 20, 0)  # Ensures start_index is at least 0
-                    end_index = (value * n_jump) + 120
+                    end_index = (value * n_jump) + 140
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]
         else:
-            # larger n_jump
-            n_jump = 5
+            # larger n_jump to reduce time.
+            n_jump = 4
 
             long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
 
@@ -77,7 +77,7 @@ class SequenceProcessor:
 
                 for key, value in res_dict.items():
                     start_index = max((value * n_jump) - 20, 0)  # Ensures start_index is at least 0
-                    end_index = (value * n_jump) + 120
+                    end_index = (value * n_jump) + 140
 
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]
