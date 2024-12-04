@@ -103,8 +103,12 @@ class WindowFinder:
                     normalized_likelihood = likelihoods[batch_no, 0].item()
                     preds.append(round(normalized_likelihood, 3))
 
-            
-            over_thirty = first_index_above_threshold(preds)
+            # find first index over 35
+            over_thirty = first_index_above_threshold(preds, 35)
+
+            # if nothing is over 35 then drop the threshold to 30
+            if not over_thirty:
+                over_thirty = first_index_above_threshold(preds, 30)
 
             if self.scfv:
                 indices = detect_peaks(preds)
@@ -116,7 +120,7 @@ class WindowFinder:
                 else:
                     return [preds.index(max(preds))]
 
-            if over_thirty:
+            if over_thirty != None:
                 return over_thirty
             else:
                 return preds.index(max(preds))
