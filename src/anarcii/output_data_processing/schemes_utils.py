@@ -94,4 +94,13 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     #         )
     #     print(result, "\n")
 
-    return (name, [chain] + [score] + [x for y in _regions for x in y])
+    return ([x for y in _regions for x in y], 
+            {
+                "chain_type": chain,
+                "score": score,
+                "query_start": None,
+                "query_end": None,
+                "error": None,
+                "query_name": name
+                                }
+                                )

@@ -30,7 +30,7 @@ def detect_peaks(data, threshold=35, min_distance=65):
           "Indices: ", peaks, "\n",
           "Values: ", peak_values)
     
-    # Plot the data and peaks
+    # #### Plot the data and peaks
     # plt.figure(figsize=(10, 6))
     # plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
     # plt.axhline(y=threshold, color='r', linestyle='--', label=f'Threshold ({threshold})')
