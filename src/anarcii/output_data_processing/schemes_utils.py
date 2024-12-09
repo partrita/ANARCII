@@ -26,7 +26,9 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     region_index_dict = scheme['region_index_dict']
 
     state_string = scheme['state_string']
-    rels = scheme['rels']
+    
+    # must create a copy to avoid changing the imported object.
+    rels = scheme['rels'].copy()
 
     _regions = [[] for _ in range(n_regions)]
     _letters = [[] for _ in range(n_regions)]

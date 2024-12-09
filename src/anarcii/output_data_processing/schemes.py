@@ -12,6 +12,7 @@ def convert_number_scheme(list_numbered_seqs, scheme):
 
     converted_seqs = []
     for sublist in list_numbered_seqs:
+        print(sublist)
         chain_call = sublist[1]['chain_type']
         chain = "heavy" if chain_call == "H" else "light"
         

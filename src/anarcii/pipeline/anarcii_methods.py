@@ -2,7 +2,6 @@ import ast, json
 
 from anarcii.output_data_processing.list_to import write_csv, write_text, write_json, return_dict, return_imgt_regions
 
-from anarcii.output_data_processing.schemes import convert_number_scheme
 
 
 def print_initial_configuration(self):
@@ -142,12 +141,4 @@ def to_imgt_regions(self):
 
 
 
-def to_scheme(self, scheme="imgt"):
-    # Check if there's output to save
-    if self._last_numbered_output is None:
-        raise ValueError("No output to convert. Run the model first.")
-    
-    converted_seqs = convert_number_scheme(self._last_numbered_output, scheme)
-    print(f"Last output converted to {scheme}")
-    
-    return converted_seqs
+

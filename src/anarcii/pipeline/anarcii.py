@@ -16,7 +16,10 @@ from anarcii.inference.model_runner import ModelRunner
 from anarcii.inference.window_selector import WindowFinder
 
 # Processing output
-from .anarcii_methods import to_text, to_csv, to_json, to_dict, to_imgt_regions, to_scheme
+from .anarcii_methods import to_text, to_csv, to_json, to_dict, to_imgt_regions
+
+from anarcii.output_data_processing.schemes import convert_number_scheme
+
 from anarcii.output_data_processing.convert_to_legacy_format import convert_output
 
 
@@ -51,7 +54,6 @@ class Anarcii:
         self.to_json = to_json.__get__(self)
         self.to_dict = to_dict.__get__(self)
         self.to_imgt_regions = to_imgt_regions.__get__(self)
-        self.to_scheme = to_scheme.__get__(self)
 
         # Get device and ncpu config
         self.ncpu = configure_cpus(ncpu)
@@ -107,6 +109,16 @@ class Anarcii:
             return convert_output(ls=self._last_numbered_output, 
                                   format=self.output_format, 
                                   verbose=self.verbose)
+        
+
+    def to_scheme(self, scheme="imgt"):
+        # Check if there's output to save
+        if self._last_numbered_output is None:
+            raise ValueError("No output to convert. Run the model first.")
+        
+        converted_seqs = convert_number_scheme(self._last_numbered_output, scheme)
+        print(f"Last output converted to {scheme}")
+        return converted_seqs
 
 
     def number_with_type(self, seqs, inner_type):
