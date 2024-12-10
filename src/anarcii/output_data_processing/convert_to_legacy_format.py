@@ -12,7 +12,7 @@ def convert_output(ls, format, verbose):
 
             new_dict = x[1]
             new_dict["species"] = None
-            new_dict["scheme"] = "IMGT"
+            new_dict["scheme"] = "imgt"
             alignment_details.append(new_dict)
 
             hit_tables.append([])
