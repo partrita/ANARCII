@@ -79,6 +79,10 @@ class Anarcii:
 
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (".pdb" in seqs or ".mmcif" in seqs):
+            # classify the  sequences into tcrs or antibodies
+            # antibodies_in, tcrs_in = classify(seqs)
+
+
             # Run both sets of numbering.
             if self.verbose:
                 print("### Running Antibody model ###")

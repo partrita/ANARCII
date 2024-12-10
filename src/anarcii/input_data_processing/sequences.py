@@ -86,6 +86,10 @@ class SequenceProcessor:
                     print("Max probability windows selected.\n")
             
     def _convert_to_tuple_list(self):
+        ''' 
+        Enumerates the list to give each seq an index.
+        This allows sequences to be sorted by length and then recombined by this index.
+        '''
         self.seqs = [(i, nm, seq) for i, (nm, seq) in enumerate(self.seqs.items())]
         
     def _sort_sequences_by_length(self):

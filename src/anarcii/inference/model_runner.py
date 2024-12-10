@@ -52,7 +52,7 @@ class ModelRunner:
         # Put into dataloader, make predictions, format the output.
         # NB: Provide a list of recommended batch sizes based on RAM and architecture
         
-        seqs_only = [t[2] for t in list_of_tuples]
+        seqs_only = [t[2] for t in list_of_tuples] # tokenised
         names_only = [t[1] for t in list_of_tuples]
         indices = [t[0] for t in list_of_tuples]
 
