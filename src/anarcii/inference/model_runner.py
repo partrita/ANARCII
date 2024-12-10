@@ -159,7 +159,7 @@ class ModelRunner:
 
                     # This is the antibody cutoff - need a new one for TCRS
                     if round(normalized_score, 3) < 15.0:
-                        numbering.append([])
+                        numbering.append(None)
 
                         alignment.append({
                                 "chain_type": "F",
@@ -284,7 +284,7 @@ class ModelRunner:
                         except Exception as e:
                             # Capture the error message from the exception
                             captured_error = str(e)
-                            numbering.append([])
+                            numbering.append(None)
                             alignment.append({
                                     "chain_type": "F",
                                     "score": round(normalized_score, 3),
