@@ -8,7 +8,7 @@ def convert_output(ls, format, verbose):
           
           numbering, alignment_details, hit_tables = [], [], []
           for x in ls:
-            numbering.append(x[0])
+            numbering.append((x[0], x[1]['query_start'], x[1]['query_end']))
             alignment_details.append(x[1])
             hit_tables.append([])
 
