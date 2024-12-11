@@ -156,7 +156,7 @@ class Anarcii:
                 list_of_seqs = {}
                 for t in seqs:
                     # Split each sequence as needed and update the dictionary
-                    split_seqs = split_sequence(t[0], t[1])
+                    split_seqs = split_sequence(t[0], t[1], self.verbose)
                     list_of_seqs.update(split_seqs)
 
             elif not is_tuple_list(seqs):
@@ -167,7 +167,7 @@ class Anarcii:
                 for n, t in enumerate(seqs):
                     name = f"seq{n}"
                     # Split each sequence as needed and update the dictionary
-                    split_seqs = split_sequence(name, t)
+                    split_seqs = split_sequence(name, t, self.verbose)
                     list_of_seqs.update(split_seqs)
 
             if self.verbose:
@@ -195,12 +195,12 @@ class Anarcii:
                 print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
                 num_chunks = (num_seqs//max_seqs_len)+1
                 for i in range(num_chunks):
-                    fastas = read_fasta(seqs)[i*max_seqs_len: (i+1)*max_seqs_len]
+                    fastas = read_fasta(seqs, self.verbose)[i*max_seqs_len: (i+1)*max_seqs_len]
                     chunk_list.append({t[0]: t[1] for t in fastas})
                 self.max_len_exceed = True
             
             else:
-                fastas = read_fasta(seqs)
+                fastas = read_fasta(seqs, self.verbose)
                 list_of_seqs = {t[0]: t[1] for t in fastas}
 
         elif isinstance(seqs, str) and os.path.exists(seqs) and (".pdb" in seqs or ".mmcif" in seqs):

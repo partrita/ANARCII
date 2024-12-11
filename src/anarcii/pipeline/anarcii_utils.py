@@ -25,36 +25,11 @@ def count_lines_with_greater_than(file_path):
     return count
 
 
-def read_fasta(file_path):
-    sequences = []
-
-    if file_path.endswith('.gz'):
-        open_file = gzip.open(file_path, 'rt')  # Open gzipped file in text mode
-    else:
-        open_file = open(file_path, 'r')
-
-    with open_file as file:
-        name = None
-        seq = ''
-        for line in file:
-            line = line.strip()
-            if line.startswith('>'):
-                if name is not None:
-                    sequences.append((name, seq))
-                name = line
-                seq = ''
-            else:
-                seq += line
-        if name is not None:
-            sequences.append((name, seq))
-    
-    return sequences
-
-
-def split_sequence(name, sequence):
+def split_sequence(name, sequence, verbose):
     # Check for delimiters
     if "-" in sequence or "/" in sequence or "\\" in sequence:
-        print(f"- or / found in sequence {name}, assuming this is a paired sequence - splitting into parts.")
+        if verbose:
+            print(f"- or / found in sequence {name}, assuming this is a paired sequence - splitting into parts.")
         # Split the sequence on any of these delimiters
         split_parts = re.split(r'[-/\\]', sequence)
         # Create named parts
@@ -64,7 +39,7 @@ def split_sequence(name, sequence):
         return {name: sequence}
 
 
-def read_fasta(file_path):
+def read_fasta(file_path, verbose):
     sequences = []
 
     if file_path.endswith('.gz'):
