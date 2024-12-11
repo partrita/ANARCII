@@ -33,7 +33,8 @@ class Anarcii:
                  cpu: bool = False,
                  ncpu: int = -1,
                  output_format: str = "simple", # legacy for old ANARCI
-                 verbose: bool = False):
+                 verbose: bool = False,
+                 debug_input = False):
         
         # need checks that all adhere before running code.
         self.seq_type = seq_type.lower()
@@ -46,6 +47,7 @@ class Anarcii:
         self._last_numbered_output = None
         self.output_format = output_format.lower()
         self.scfv = scfv_or_concatenated_chains
+        self.debug_input = debug_input
 
         # Attach methods
         self.print_initial_configuration = print_initial_configuration.__get__(self)
@@ -246,4 +248,8 @@ class Anarcii:
             if self.verbose:
                 print(f"Numbered {len(numbered_seqs)} seqs in {runtime} mins. \n")
             
+            if self.debug_input:
+                print("Printing list of input seqs.")
+                print(list_of_seqs)
+
             return numbered_seqs
