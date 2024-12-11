@@ -8,7 +8,7 @@ def convert_output(ls, format, verbose):
           
           numbering, alignment_details, hit_tables = [], [], []
           for x in ls:
-            numbering.append((x[0], x[1]['query_start'], x[1]['query_end']))
+            numbering.append([(x[0], x[1]['query_start'], x[1]['query_end'])])
 
           # Changes for Ody needed here.
             new_dict = x[1]
