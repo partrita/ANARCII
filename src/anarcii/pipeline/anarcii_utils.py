@@ -55,7 +55,8 @@ def read_fasta(file_path, verbose):
             if line.startswith('>'):
                 if name is not None:
                     if "-" in seq or "/" in seq or "\\" in seq:
-                        print(f"- or / found in sequence {name}, assuming this is a paired sequence - splitting into parts.")
+                        if verbose:
+                            print(f"- or / found in sequence {name}, assuming this is a paired sequence - splitting into parts.")
                         split_parts = re.split(r'[-/\\]', seq)
                         for i, part in enumerate(split_parts, start=1):
                             sequences.append((f"{name}_{i}", part))
@@ -68,7 +69,8 @@ def read_fasta(file_path, verbose):
         # Handle the last sequence
         if name is not None:
             if "-" in seq or "/" in seq or "\\" in seq:
-                print(f"-/\\ found in sequence {name}, assuming this is a paired sequence - splitting into parts.")
+                if verbose:
+                    print(f"-/\\ found in sequence {name}, assuming this is a paired sequence - splitting into parts.")
                 split_parts = re.split(r'[-/\\]', seq)
                 for i, part in enumerate(split_parts, start=1):
                     sequences.append((f"{name}_{i}", part))
