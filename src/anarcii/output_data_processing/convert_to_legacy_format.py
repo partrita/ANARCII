@@ -1,6 +1,7 @@
 def convert_output(ls, format, verbose):
     if format == "simple":
          return ls
+    
     elif format == "legacy":
           if verbose:
                print("Converting to legacy format. Three separate lists. \n",
@@ -8,7 +9,10 @@ def convert_output(ls, format, verbose):
           
           numbering, alignment_details, hit_tables = [], [], []
           for x in ls:
-            numbering.append([(x[0], x[1]['query_start'], x[1]['query_end'])])
+            if x[0]:
+              numbering.append([(x[0], x[1]['query_start'], x[1]['query_end'])])
+            else:
+              numbering.append(None)
 
           # Changes for Ody needed here.
             new_dict = x[1]
@@ -17,6 +21,6 @@ def convert_output(ls, format, verbose):
             
             alignment_details.append([new_dict])
 
-            hit_tables.append([None])
+            hit_tables.append(None)
 
           return numbering, alignment_details, hit_tables
