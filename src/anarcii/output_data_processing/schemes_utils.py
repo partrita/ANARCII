@@ -1,5 +1,5 @@
 from .schemes_constants import *
-from .scheme_specific_function import scheme_specific_numbering
+from .scheme_specific_function import scheme_specifics
 
 def conversion_function(anarcii_numbered_seq, scheme_name):
     '''Takes one anarcii number sequence and applies the conversion scheme.
@@ -93,9 +93,13 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
 
 
     ##### Renumbering required for specific regions. #####
-    _regions = scheme_specific_numbering(regions = _regions,
+    _regions = scheme_specifics(regions = _regions,
                                          scheme=scheme_name.split("_")[0], 
                                          chain=scheme_name.split("_")[1])
+    
+    print(_regions)
+
+    print(_letters)
     
     ### Debug only ###
     for x, y in zip(_regions, _letters):

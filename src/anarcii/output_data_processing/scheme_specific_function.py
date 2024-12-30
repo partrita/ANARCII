@@ -1,5 +1,6 @@
 # These are used to apply custom modifications for each scheme.
-  
+from .schemes_constants import *
+
 def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
     """
     Given a length of a cdr3 give back a list of the annotations that should be applied to the sequence.
@@ -52,9 +53,48 @@ def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
 
 
 
-def scheme_specific_numbering(regions, scheme, chain):
+def scheme_specifics(regions, scheme, chain):
+
     print("Fucks sake - focus on kabat heavy...\n")
 
+    # Kabat H region 1 (index 0)
+    # Insertions are placed at Kabat position 6.
+    # Count how many we recognised as insertion by the hmm
+    insertions = len( [ 1 for _ in regions[0] if _[0][1] != " " ] ) 
+    # We will place all insertion in this region at Kabat position 6.
+    if insertions:
+        start = regions[0][0][0][0] # The starting Kabat number as found by the HMM (could easily start from 2 for example)
+        # I have a feeling this may be a source of a bug in very unusual cases. Can't break for now. Will catch mistakes in a validate function. 
+        length = len( regions[0] )
+        annotations = [ (_, " ") for _ in range(start, 7) ] + [ (6, alphabet[_]) for _ in range(insertions) ] + [(7," "),(8," "),(9," ")]
+        regions[0] =  [ (annotations[i], regions[0][i][1]) for i in range(length) ]
+    else:
+        regions[0] = regions[0]
+
+    # CDR1 
+    # Kabat H region 3 (index 2)
+    # Put insertions onto 35. Delete from 35 backwards
+    length = len( regions[2] )
+    insertions = max(0,length - 13)
+    annotations = [(_,' ') for _ in range(23, 36)][:length] 
+    annotations += [(35, alphabet[i]) for i in range(insertions) ]
+    regions[2] = [ (annotations[i], regions[2][i][1]) for i in range(length) ]
+
+    # CDR2
+    # Chothia H region 5 (index 4) 
+    # put insertions onto 52
+    length = len( regions[4] )
+    # 50 to 57 inclusive
+    insertions = max(length - 8, 0) # Eight positions can be accounted for, the remainder are insertions
+    # Delete in the order, 52, 51, 50,53, 54 ,55, 56, 57
+    annotations  =  [(50, " "),(51, " "), (52, " ")][:max(0,length-5)]
+    annotations += [(52, alphabet[i]) for i in range(insertions) ]
+    annotations += [(53, " "),(54, " "),(55, " "),(56, " "),(57, " ")][ abs( min(0,length-5) ):]
+    regions[4] = [ (annotations[i], regions[4][i][1]) for i in range(length) ]
+
+    # CDR3
+    # Chothia H region 7 (index 6) 
+    # put insertions onto 100
     length = len( regions[6] )    
     if length > 36:
         # Too many insertions. Do not apply numbering. 
@@ -62,7 +102,6 @@ def scheme_specific_numbering(regions, scheme, chain):
         return [] 
 
     annotations = get_cdr3_annotations(length, scheme=scheme, chain_type=chain)
-    
     regions[6]  = [ (annotations[i], regions[6][i][1]) for i in range(length)  ]
 
     return regions
