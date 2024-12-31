@@ -6,7 +6,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     Works on one sequence at a time.
     '''
     scheme = schemes[scheme_name]
-    print(scheme_name)
+    # print(scheme_name)
 
     nums = anarcii_numbered_seq[0]
     name = anarcii_numbered_seq[1]['query_name']
@@ -102,15 +102,16 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     ## >> Go to scheme_specific_function.py file >>>    
     _regions = scheme_specifics(regions = _regions,
                                 scheme=scheme_name.split("_")[0], 
-                                chain=scheme_name.split("_")[1])
+                                chain=scheme_name.split("_")[1],
+                                chain_type=chain)
 
     # print(_regions)
     
-    ### Debug only ###
-    for x, y in zip(_regions, _letters):
-        result = " ".join(
-            [(str(item[0][0]) + str(item[0][1]) + "-" + item[1]).replace(" ", "") for item in x])
-        print(result, "\n")
+    # ### Debug only ###
+    # for x, y in zip(_regions, _letters):
+    #     result = " ".join(
+    #         [(str(item[0][0]) + str(item[0][1]) + "-" + item[1]).replace(" ", "") for item in x])
+    #     print(result, "\n")
 
 
     return ([x for y in _regions for x in y], 

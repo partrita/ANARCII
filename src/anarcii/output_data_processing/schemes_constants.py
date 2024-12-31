@@ -82,6 +82,41 @@ schemes = {
                                6: -20,
                                },
                       "n_regions": 7},
+
+    # AHo is very complicated to implement - however the heavy and light should be the same... Code duplication...
+    "aho_heavy": {"state_string": 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+                  "region_string": 'BBBBBBBBBBCCCCCCCCCCCCCCDDDDDDDDDDDDDDDDEEEEEEEEEEEEEEEFFFFFFFFFFFFFFFFFFFFHHHHHHHHHHHHHHHHIIIIIIIIIIIIIJJJJJJJJJJJJJKKKKKKKKKKK',
+                  "region_index_dict": dict( list(zip( "ABCDEFGHIJK", list(range(11)) )) ),
+                      "rels": { 0:0, 
+                                1:0,
+                                2:0,
+                                3:0,
+                                4:2,
+                                5:2,
+                                6:2,
+                                7:2,
+                                8:2,
+                                9:2,
+                                10:21},
+                      "n_regions": 11},
+                    
+    "aho_light": {"state_string": 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+                  "region_string": 'BBBBBBBBBBCCCCCCCCCCCCCCDDDDDDDDDDDDDDDDEEEEEEEEEEEEEEEFFFFFFFFFFFFFFFFFFFFHHHHHHHHHHHHHHHHIIIIIIIIIIIIIJJJJJJJJJJJJJKKKKKKKKKKK',
+                  "region_index_dict": dict( list(zip( "ABCDEFGHIJK", list(range(11)) )) ),
+                      "rels": { 0:0, 
+                                1:0,
+                                2:0,
+                                3:0,
+                                4:2,
+                                5:2,
+                                6:2,
+                                7:2,
+                                8:2,
+                                9:2,
+                                10:21},
+                      "n_regions": 11},
+
+
 }
 
 
