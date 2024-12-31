@@ -98,6 +98,7 @@ def chothia_heavy(regions):
     # CDR3
     # Chothia H region 7 (index 6) >>> put insertions onto 100
     length = len( regions[6] )    
+    if length > 36: return []
     annotations = get_cdr3_annotations(length, scheme="chothia", chain_type="heavy")
     regions[6]  = [ (annotations[i], regions[6][i][1]) for i in range(length)  ]
 
@@ -140,7 +141,9 @@ def kabat_heavy(regions):
 
     # CDR3
     # Chothia H region 7 (index 6) >>> put insertions onto 100
-    length = len( regions[6] )    
+    length = len( regions[6] )  
+    if length > 36: return [] # Too many insertions. Do not apply numbering. 
+
     annotations = get_cdr3_annotations(length, scheme="kabat", chain_type="heavy")
     regions[6]  = [ (annotations[i], regions[6][i][1]) for i in range(length)  ]
 
@@ -197,6 +200,8 @@ def martin_heavy(regions):
     # CDR3
     # Chothia H region 7 (index 6) >>> put insertions onto 100
     length = len( regions[6] )    
+    if length > 36: return [] # Too many insertions. Do not apply numbering. 
+
     annotations = get_cdr3_annotations(length, scheme="chothia", chain_type="heavy")
     regions[6]  = [ (annotations[i], regions[6][i][1]) for i in range(length)  ]
 
@@ -245,6 +250,7 @@ def chothia_light(regions):
     # Chothia L region 6 (index 5) 
     # put insertions onto 95
     length = len( regions[5] )    
+    if length > 36: return [] # Too many insertions. Do not apply numbering. 
 
     annotations = get_cdr3_annotations(length, scheme="chothia", chain_type="light")
     regions[5]  = [ (annotations[i], regions[5][i][1]) for i in range(length)  ]
@@ -274,6 +280,8 @@ def kabat_light(regions):
     # CDR3
     # Chothia L region 6 (index 5) >>> put insertions onto 95
     length = len( regions[5] )    
+    if length > 36: return [] # Too many insertions. Do not apply numbering. 
+
     annotations = get_cdr3_annotations(length, scheme="kabat", chain_type="light")
     regions[5]  = [ (annotations[i], regions[5][i][1]) for i in range(length)  ]
     
