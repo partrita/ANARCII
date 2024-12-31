@@ -1,6 +1,20 @@
 from .schemes_constants import *
 from .scheme_specific_function import scheme_specifics
 
+def gap_missing( numbering ):
+    '''
+    Place gaps when a number is missing. 
+    Complex to read but effective function.
+    '''
+    # Gaps placed where a number is not present
+    num = [ ((0,' '),'-') ]
+    for p, a in numbering:  
+        if p[0] > num[-1][0][0]+1:
+            for _i in range( num[-1][0][0]+1, p[0] ):
+                num.append( ((_i, ' '), '-' ) )
+        num.append( (p,a) )
+    return num[1:]
+
 def conversion_function(anarcii_numbered_seq, scheme_name):
     '''Takes one anarcii number sequence and applies the conversion scheme.
     Works on one sequence at a time.
@@ -113,8 +127,11 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     #         [(str(item[0][0]) + str(item[0][1]) + "-" + item[1]).replace(" ", "") for item in x])
     #     print(result, "\n")
 
+    # gap missing numbers
 
-    return ([x for y in _regions for x in y], 
+    unpacked_regions = [x for y in _regions for x in y]
+    
+    return (gap_missing(unpacked_regions), 
             {
                 "chain_type": chain,
                 "score": score,
