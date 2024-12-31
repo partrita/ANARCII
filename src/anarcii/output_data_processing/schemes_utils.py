@@ -99,6 +99,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     _regions = _new_regions
 
     ##### Renumbering required for specific regions. #####
+    ## >> Go to scheme_specific_function.py file >>>    
     _regions = scheme_specifics(regions = _regions,
                                 scheme=scheme_name.split("_")[0], 
                                 chain=scheme_name.split("_")[1])
