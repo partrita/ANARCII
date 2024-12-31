@@ -45,6 +45,7 @@ def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
         return annotations
 
     elif scheme in [ "chothia", "kabat"] and chain_type=="heavy": # For chothia and kabat
+        print("RENUMBERING CDR3 HEAVY")
         # Number forwards from 93
         insertions = max(length - 10, 0)
         assert insertions < 27, "Too many insertions for numbering scheme to handle" # We ran out of letters.
@@ -53,6 +54,7 @@ def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
         return annotations
 
     elif scheme in [ "chothia", "kabat"] and chain_type=="light":
+        print("RENUMBERING CDR3 LIGHT")
         # Number forwards from 89
         insertions = max(length - 9, 0)
         assert insertions < 27, "Too many insertions for numbering scheme to handle" # We ran out of letters.
