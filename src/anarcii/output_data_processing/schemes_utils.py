@@ -36,6 +36,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     last_num = 0
 
     for num, state, letter in zip(query_nums, query_state, letters):
+        # What does this do???
         num_region_index = region_index_dict[region_string[num-1]]
         num_conversion_state = state_string[num-1]
 
@@ -84,22 +85,25 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
 
         # ### Debug only ###
         # if NEW_NUM in [65, 66, 67, 68]:
-        #     print(letter, 
-        #           num, offset, "=", NEW_NUM, ">>>",  
-        #           num_conversion_state, state, insert_count)
+        #     print(letter, num, offset, "=", NEW_NUM, ">>>", num_conversion_state, state, insert_count)
             
         last_num = NEW_NUM
         _letters[num_region_index].append(letter)
 
+    ## Remove the blanks...
+    # We need to remove the blanks that were created in the conversion process
+    _new_regions = []
+    for sub_region in _regions:
+        _new_regions.append([x for x in sub_region if x[1] != "-"])
+
+    _regions = _new_regions
 
     ##### Renumbering required for specific regions. #####
     _regions = scheme_specifics(regions = _regions,
-                                         scheme=scheme_name.split("_")[0], 
-                                         chain=scheme_name.split("_")[1])
-    
-    print(_regions)
+                                scheme=scheme_name.split("_")[0], 
+                                chain=scheme_name.split("_")[1])
 
-    print(_letters)
+    # print(_regions)
     
     ### Debug only ###
     for x, y in zip(_regions, _letters):

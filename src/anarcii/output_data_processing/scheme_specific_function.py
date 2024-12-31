@@ -1,6 +1,14 @@
 # These are used to apply custom modifications for each scheme.
 from .schemes_constants import *
 
+
+def scheme_specifics(regions, scheme, chain):
+    construct_scheme = scheme + "_" + chain
+    function = function_dict[construct_scheme]
+    result = function(regions, scheme, chain)
+    return result
+
+
 def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
     """
     Given a length of a cdr3 give back a list of the annotations that should be applied to the sequence.
@@ -52,11 +60,7 @@ def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
         raise AssertionError("Unimplemented scheme")
 
 
-
-def scheme_specifics(regions, scheme, chain):
-
-    print("Fucks sake - focus on kabat heavy...\n")
-
+def kabat_heavy(regions, scheme, chain):
     # Kabat H region 1 (index 0)
     # Insertions are placed at Kabat position 6.
     # Count how many we recognised as insertion by the hmm
@@ -105,3 +109,13 @@ def scheme_specifics(regions, scheme, chain):
     regions[6]  = [ (annotations[i], regions[6][i][1]) for i in range(length)  ]
 
     return regions
+
+
+function_dict = {
+    "kabat_heavy": kabat_heavy,
+    "kabat_light": kabat_light,
+    "martin_heavy": martin_heavy,
+    "martin_light": martin_light,
+    "chothia_heavy": chothia_heavy,
+    "chothia_light": chothia_light,
+}
