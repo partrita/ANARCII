@@ -62,21 +62,21 @@ class Anarcii:
         self.device = configure_device(self.cpu, self.ncpu)
         self.print_initial_configuration()
 
-        # shark model
-        self.shark_model = ModelRunner("shark", 
-                                    self.mode, self.batch_size, self.device, self.verbose)
-        self.shark_window = WindowFinder("shark",
-                                      self.mode, self.batch_size, self.device, self.scfv)
+        # # shark model
+        # self.shark_model = ModelRunner("shark", 
+        #                             self.mode, self.batch_size, self.device, self.verbose)
+        # self.shark_window = WindowFinder("shark",
+        #                               self.mode, self.batch_size, self.device, self.scfv)
         # Antibody model
         self.ig_model = ModelRunner("antibody", 
                                     self.mode, self.batch_size, self.device, self.verbose)
         self.ig_window = WindowFinder("antibody",
                                       self.mode, self.batch_size, self.device, self.scfv)
-        # TCR model
-        self.tcr_model = ModelRunner("tcr",
-                                     self.mode, self.batch_size, self.device, self.verbose)
-        self.tcr_window = WindowFinder("tcr",
-                                       self.mode, self.batch_size, self.device, self.scfv)
+        # # TCR model
+        # self.tcr_model = ModelRunner("tcr",
+        #                              self.mode, self.batch_size, self.device, self.verbose)
+        # self.tcr_window = WindowFinder("tcr",
+        #                                self.mode, self.batch_size, self.device, self.scfv)
         
 
     def number(self, seqs):
