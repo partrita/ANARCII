@@ -158,7 +158,7 @@ class ModelRunner:
 
 
                     # This is the antibody cutoff - need a new one for TCRS
-                    if round(normalized_score, 3) < 15.0:
+                    if round(normalized_score, 3) < 12.0:
                         numbering.append(None)
 
                         alignment.append({
