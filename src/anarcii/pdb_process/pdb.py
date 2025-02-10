@@ -61,7 +61,8 @@ def renumber_pdb_with_anarcii(file_path,
             score = alignment['score']
 
             seen_lines = set()
-            if chain_call in ["H", "L", "K", "A", "B", "D", "G"]:
+            if chain_call in ["H", "L", "K", # AB
+                              "A", "B", "D", "G"]: # TCR
                 
                 if score < 19.0 and not \
                     ((('23', ' '), 'C') in nums and \

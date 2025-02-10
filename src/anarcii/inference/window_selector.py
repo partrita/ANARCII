@@ -14,7 +14,7 @@ def first_index_above_threshold(preds, threshold=35):
             return i
     return None 
 
-def detect_peaks(data, threshold=35, min_distance=65):
+def detect_peaks(data, threshold=35, min_distance=50):
     peaks = []
     peak_values = []
     
@@ -30,17 +30,17 @@ def detect_peaks(data, threshold=35, min_distance=65):
           "Indices: ", peaks, "\n",
           "Values: ", peak_values)
     
-    # #### Plot the data and peaks
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
-    # plt.axhline(y=threshold, color='r', linestyle='--', label=f'Threshold ({threshold})')
-    # plt.scatter(peaks, [data[i] for i in peaks], color='orange', label='Detected Peaks', zorder=5)
-    # plt.title("Data with Potential Peaks")
-    # plt.xlabel("Index")
-    # plt.ylabel("Score of window")
-    # plt.legend()
-    # plt.grid(True)
-    # plt.show()
+    #### Plot the data and peaks
+    plt.figure(figsize=(10, 6))
+    plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
+    plt.axhline(y=threshold, color='r', linestyle='--', label=f'Threshold ({threshold})')
+    plt.scatter(peaks, [data[i] for i in peaks], color='orange', label='Detected Peaks', zorder=5)
+    plt.title("Data with Potential Peaks")
+    plt.xlabel("Index")
+    plt.ylabel("Score of window")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
     
     return peaks
 
