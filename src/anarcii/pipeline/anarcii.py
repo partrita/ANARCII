@@ -82,13 +82,20 @@ class Anarcii:
 
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (".pdb" in seqs or ".mmcif" in seqs):
+
+            print(seqs)
             
             # classify the  sequences into tcrs or antibodies
             classifii_seqs = Classifii(batch_size=self.batch_size, device=self.device)
 
             antibodies, tcrs = classifii_seqs(seqs)
+
+            print(antibodies)
+            print(tcrs)
+
             if self.verbose:
                 print("### Ran antibody/TCR classifier. ###\n")
+                print(f"Found {len(antibodies)} antibodies and {len(tcrs)} TCRs.")
 
             # Run both sets of numbering.
             if self.verbose:
@@ -98,7 +105,8 @@ class Anarcii:
 
             if self.verbose:
                 print("## Running TCR model. ###")
-            tcrs_out = self.number_with_type(tcrs, "tcr")
+            tcrs_out = self.number_with_type(tcrs, "antibody")
+
 
 
             # Choose the best option based on the conserved residues and likelihoods.

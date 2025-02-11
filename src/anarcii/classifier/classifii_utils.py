@@ -28,7 +28,7 @@ def dataloader(batch_size, ls):
 
 
 
-def split_sequences(indices, names_only, seqs_only, classes):
+def split_types(indices, names_only, seqs_only, classes):
     '''
     Takes a list of the classes and spits out tcrs and antibodies as separate lists with indexes maintained.
     '''

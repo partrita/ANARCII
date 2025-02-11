@@ -3,10 +3,10 @@ import torch.nn.functional as F
 import numpy as np
 import torch, os, json
 from anarcii.classifier import classifii_model
-from anarcii.classifier.classifii_utils import dataloader, split_sequences
+from anarcii.classifier.classifii_utils import dataloader, split_types
 
 
-class Tokenizer:
+class TypeTokeniser:
     def __init__(self, vocab_type="protein"):
         self.vocab_type = vocab_type
         self.pad = '<PAD>'
@@ -45,7 +45,7 @@ class Tokenizer:
 
 
 
-class Loader:
+class TypeLoader:
     def __init__(self, device):
         self.device = device
         self.script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -84,7 +84,7 @@ class Loader:
                         self.TRG_PAD_IDX,
                         self.device)
 
-        model_path = os.path.join(self.script_dir, "model.pt")
+        model_path = os.path.join(self.script_dir, "classifii.pt")
         S2S.load_state_dict(
             torch.load(model_path, map_location=self.device, weights_only=True)
         )
@@ -99,9 +99,9 @@ class Classifii:
     def __init__(self, batch_size, device):
         self.batch_size = batch_size
         self.device = device
-        self.aa = Tokenizer("protein")
-        self.num = Tokenizer("number")
-        self.model = Loader(self.device).model
+        self.aa = TypeTokeniser("protein")
+        self.num = TypeTokeniser("number")
+        self.model = TypeLoader(self.device).model
         
     def __call__(self, sequences):
         print("Classifying sequences.")
@@ -122,7 +122,10 @@ class Classifii:
 
         dl = dataloader(self.batch_size, seqs_only)
         classes = self._classify(dl)
-        antibodies, tcrs = split_sequences(indices, names_only, sequences, classes)
+
+        print(classes)
+
+        antibodies, tcrs = split_types(indices, names_only, sequences, classes)
         return antibodies, tcrs
 
 
