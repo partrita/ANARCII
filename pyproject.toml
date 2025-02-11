@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "anarcii"
+dynamic = ["version"]
+description = "A sequence numbering tool called ANARCII that..."
+readme = "README.md"
+license-file = "LICENCE"
+authors = [
+    { name = "Alexander Greenshields Watson", email = "opig@stats.ox.ac.uk" },
+]
+dependencies = [
+    "numpy",
+    "torch",
+]
+
+[project.scripts]
+anarcii = "anarcii.cli:main"
+
+[tool.hatch.version]
+path = "src/anarcii/__init__.py"
