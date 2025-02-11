@@ -104,10 +104,10 @@ class Classifii:
         self.model = TypeLoader(self.device).model
         
     def __call__(self, sequences):
-        print("Classifying sequences.")
         tokenized_seqs = []
+        # Capped at 235 for now.
         for seq in sequences:
-            bookend_seq = [self.aa.start] + [s for s in seq[1]] + [self.aa.end]
+            bookend_seq = [self.aa.start] + [s for s in seq[1][:235]] + [self.aa.end]
             try:
                 tokenized_seq = torch.from_numpy(self.aa.encode(bookend_seq))
                 tokenized_seqs.append((seq[0], tokenized_seq))
@@ -120,8 +120,6 @@ class Classifii:
 
         dl = dataloader(self.batch_size, seqs_only)
         classes = self._classify(dl)
-
-        print(classes)
 
         antibodies, tcrs = split_types(sequences, classes)
         return antibodies, tcrs

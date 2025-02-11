@@ -3,9 +3,20 @@ from torch.utils.data import DataLoader
 
 
 
-def join_mixed_types(antibodies, tcrs):
+def join_mixed_types(antibodies, tcrs, names):
     print("joining types")
-    joined = antibodies + tcrs
+
+    dict1 = {item[1]['query_name']:item for item in antibodies}
+    dict2 = {item[1]['query_name']:item for item in tcrs}
+
+    joined = []
+    for name in names:
+        one = dict1.get(name, [])
+        if one:
+            joined.append(one)
+        else:
+            joined.append(dict2.get(name, []))
+            
     return joined
 
 

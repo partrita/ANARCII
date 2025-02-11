@@ -110,6 +110,7 @@ class Anarcii:
                 return 
 
             list_of_tuples_pre_classifii = list(dict_of_seqs.items())
+            list_of_names = list(dict_of_seqs.keys())
             antibodies, tcrs = classifii_seqs(list_of_tuples_pre_classifii)
 
             if self.verbose:
@@ -119,7 +120,7 @@ class Anarcii:
             antis_out = self.number_with_type(antibodies, "antibody")
             tcrs_out = self.number_with_type(tcrs, "antibody")
 
-            self._last_numbered_output = join_mixed_types(antis_out, tcrs_out)
+            self._last_numbered_output = join_mixed_types(antis_out, tcrs_out, list_of_names)
 
             return convert_output(ls=self._last_numbered_output, 
                                   format=self.output_format, 
