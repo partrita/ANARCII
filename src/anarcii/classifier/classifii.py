@@ -105,27 +105,25 @@ class Classifii:
         
     def __call__(self, sequences):
         print("Classifying sequences.")
-        indexed_sequences = [(x, y[0], y[1]) for x, y in enumerate(sequences)]
         tokenized_seqs = []
-        for seq in indexed_sequences:
-            bookend_seq = [self.aa.start] + [s for s in seq[2]] + [self.aa.end]
+        for seq in sequences:
+            bookend_seq = [self.aa.start] + [s for s in seq[1]] + [self.aa.end]
             try:
                 tokenized_seq = torch.from_numpy(self.aa.encode(bookend_seq))
-                tokenized_seqs.append((seq[0], seq[1], tokenized_seq))
+                tokenized_seqs.append((seq[0], tokenized_seq))
             except KeyError as e:
                 print(f"Sequence could not be numbered. Contains an invalid residue: {e}")
-                tokenized_seqs.append((seq[0], seq[1], torch.from_numpy(self.aa.encode(["F"]))))
+                tokenized_seqs.append((seq[0], torch.from_numpy(self.aa.encode(["F"]))))
                 
-        seqs_only = [t[2] for t in tokenized_seqs] # tokenised
-        names_only = [t[1] for t in tokenized_seqs]
-        indices = [t[0] for t in tokenized_seqs]
+        seqs_only = [t[1] for t in tokenized_seqs] # tokenised
+        names_only = [t[0] for t in tokenized_seqs]
 
         dl = dataloader(self.batch_size, seqs_only)
         classes = self._classify(dl)
 
         print(classes)
 
-        antibodies, tcrs = split_types(indices, names_only, sequences, classes)
+        antibodies, tcrs = split_types(sequences, classes)
         return antibodies, tcrs
 
 

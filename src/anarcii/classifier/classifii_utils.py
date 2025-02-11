@@ -28,17 +28,17 @@ def dataloader(batch_size, ls):
 
 
 
-def split_types(indices, names_only, seqs_only, classes):
+def split_types(seqs, classes):
     '''
     Takes a list of the classes and spits out tcrs and antibodies as separate lists with indexes maintained.
     '''
     antibodies, tcrs = [], []
-    for x,y,z,c in zip(indices, names_only, seqs_only, classes):
+    for z,c in zip(seqs, classes):
         if c == "A":
-            antibodies.append((x, y, z))
+            antibodies.append(z)
         elif c == "T":
-            tcrs.append((x, y, z))
+            tcrs.append(z)
         else:
-            print(f"Could not classify sequence: {y}")
+            print(f"Could not classify sequence: {z}")
     return antibodies, tcrs
 

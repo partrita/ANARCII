@@ -80,36 +80,45 @@ class Anarcii:
         #                                self.mode, self.batch_size, self.device, self.scfv)
         
 
+
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (".pdb" in seqs or ".mmcif" in seqs):
-
-            print(seqs)
-            
             # classify the  sequences into tcrs or antibodies
             classifii_seqs = Classifii(batch_size=self.batch_size, device=self.device)
 
-            antibodies, tcrs = classifii_seqs(seqs)
+            if isinstance(seqs, list):
+                if is_tuple_list(seqs):                   
+                    dict_of_seqs = {}
+                    for t in seqs:
+                        split_seqs = split_sequence(t[0], t[1], self.verbose)
+                        dict_of_seqs.update(split_seqs)
+            
+                elif not is_tuple_list(seqs):        
+                    dict_of_seqs = {}
+                    for n, t in enumerate(seqs):
+                        name = f"seq{n}"
+                        # Split each sequence as needed and update the dictionary
+                        split_seqs = split_sequence(name, t, self.verbose)
+                        dict_of_seqs.update(split_seqs)
 
-            print(antibodies)
-            print(tcrs)
+            elif isinstance(seqs, str) and os.path.exists(seqs) and ".fa" in seqs:
+                fastas = read_fasta(seqs, self.verbose)
+                dict_of_seqs = {t[0]: t[1] for t in fastas}
+
+            elif isinstance(seqs, str) and os.path.exists(seqs) and (".pdb" in seqs or ".mmcif" in seqs):
+                print("Renumbering of a PDB file does not currently work in unknown mode.")
+                return 
+
+            list_of_tuples_pre_classifii = list(dict_of_seqs.items())
+            antibodies, tcrs = classifii_seqs(list_of_tuples_pre_classifii)
 
             if self.verbose:
                 print("### Ran antibody/TCR classifier. ###\n")
                 print(f"Found {len(antibodies)} antibodies and {len(tcrs)} TCRs.")
 
-            # Run both sets of numbering.
-            if self.verbose:
-                print("### Running Antibody model ###")
             antis_out = self.number_with_type(antibodies, "antibody")
-
-
-            if self.verbose:
-                print("## Running TCR model. ###")
             tcrs_out = self.number_with_type(tcrs, "antibody")
 
-
-
-            # Choose the best option based on the conserved residues and likelihoods.
             self._last_numbered_output = join_mixed_types(antis_out, tcrs_out)
 
             return convert_output(ls=self._last_numbered_output, 
@@ -168,33 +177,33 @@ class Anarcii:
                 if self.verbose:
                     print("Running on a list of tuples of format: [(name,sequence), ...].")
                     
-                list_of_seqs = {}
+                dict_of_seqs = {}
                 for t in seqs:
                     # Split each sequence as needed and update the dictionary
                     split_seqs = split_sequence(t[0], t[1], self.verbose)
-                    list_of_seqs.update(split_seqs)
+                    dict_of_seqs.update(split_seqs)
 
             elif not is_tuple_list(seqs):
                 if self.verbose:
                     print("Running on a list of strings: [sequence, ...].")
                 
-                list_of_seqs = {}
+                dict_of_seqs = {}
                 for n, t in enumerate(seqs):
                     name = f"seq{n}"
                     # Split each sequence as needed and update the dictionary
                     split_seqs = split_sequence(name, t, self.verbose)
-                    list_of_seqs.update(split_seqs)
+                    dict_of_seqs.update(split_seqs)
 
             if self.verbose:
-                print("Length of sequence list: ", len(list_of_seqs))
+                print("Length of sequence list: ", len(dict_of_seqs))
 
             # If the list is huge - breakup into chunks of 1M.
-            if len(list_of_seqs) > max_seqs_len:
+            if len(dict_of_seqs) > max_seqs_len:
                 print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
-                num_chunks = (len(list_of_seqs)//max_seqs_len)+1
+                num_chunks = (len(dict_of_seqs)//max_seqs_len)+1
                 chunk_list = {}
                 for i in range(num_chunks):
-                    chunk_list[i] = list_of_seqs[i*max_seqs_len: (i+1)*max_seqs_len]
+                    chunk_list[i] = dict_of_seqs[i*max_seqs_len: (i+1)*max_seqs_len]
                 self.max_len_exceed = True
 
         # Fasta file
@@ -216,7 +225,7 @@ class Anarcii:
             
             else:
                 fastas = read_fasta(seqs, self.verbose)
-                list_of_seqs = {t[0]: t[1] for t in fastas}
+                dict_of_seqs = {t[0]: t[1] for t in fastas}
 
         elif isinstance(seqs, str) and os.path.exists(seqs) and (".pdb" in seqs or ".mmcif" in seqs):
             # This makes an infinite loop if unknown >>> Need to separate it out.
@@ -226,7 +235,6 @@ class Anarcii:
                                                         inner_batch_size=self.batch_size,
                                                         inner_cpu=self.cpu)
             return numbered_chains
-
 
         else:
             print("Input is not a list of sequences, nor a valid path to a fasta file (must end in .fa or .fasta), nor a pdb file (.pdb).")
@@ -248,7 +256,7 @@ class Anarcii:
 
         else:
             # instantiate the Sequences class and process
-            sequences = SequenceProcessor(list_of_seqs, model, window_model, self.verbose, self.scfv)
+            sequences = SequenceProcessor(dict_of_seqs, model, window_model, self.verbose, self.scfv)
             processed_seqs = sequences.process_sequences()
 
             # ==============================================================================
@@ -263,6 +271,6 @@ class Anarcii:
             
             if self.debug_input:
                 print("Printing list of input seqs.")
-                print(list_of_seqs)
+                print(dict_of_seqs)
 
             return numbered_seqs
