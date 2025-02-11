@@ -270,8 +270,10 @@ class ModelRunner:
                             # Backfill >>>>
                             try:
                                 first_num = int(nums[0][0])  # get first number
-                            except IndexError:
+                            except (IndexError, ValueError):
                                 # When numbering has failed, `nums` is an empty list.
+                                # When the sequences are messed up, the first number can
+                                # be a string, like an EOS or an X token.
                                 first_num = 1
 
                             # Should not do this before 10 in case of failure to identify the gap.
@@ -293,8 +295,10 @@ class ModelRunner:
                             # Fill in up to 1 with gaps >>>>>
                             try:
                                 first_num = int(nums[0][0])  # get first number
-                            except IndexError:
+                            except (IndexError, ValueError):
                                 # When numbering has failed, `nums` is an empty list.
+                                # When the sequences are messed up, the first number can
+                                # be a string, like an EOS or an X token.
                                 first_num = 1
 
                             for missing_num in range(
