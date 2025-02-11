@@ -1,14 +1,16 @@
 import os
 import time
 
-from .configuration_utils import configure_cpus, configure_device
-from .anarcii_methods import print_initial_configuration
+from anarcii.pipeline.configuration_utils import configure_cpus, configure_device
+from anarcii.pipeline.anarcii_methods import print_initial_configuration
 
 # Functions for processing input
-from .anarcii_utils import read_fasta, pick_type, count_lines_with_greater_than, is_tuple_list, split_sequence
-from .anarcii_constants import max_seqs_len
-from .anarcii_batch_process import batch_process
+from anarcii.pipeline.anarcii_utils import read_fasta, pick_type, count_lines_with_greater_than, is_tuple_list, split_sequence
+from anarcii.pipeline.anarcii_constants import max_seqs_len
+from anarcii.pipeline.anarcii_batch_process import batch_process
 from anarcii.pdb_process.pdb import renumber_pdb_with_anarcii
+
+from anarcii.classifier.classifii import classifii, join_mixed_types
 
 # Classes
 from anarcii.input_data_processing.sequences import SequenceProcessor
@@ -16,10 +18,8 @@ from anarcii.inference.model_runner import ModelRunner
 from anarcii.inference.window_selector import WindowFinder
 
 # Processing output
-from .anarcii_methods import to_text, to_csv, to_json, to_dict, to_imgt_regions
-
+from anarcii.pipeline.anarcii_methods import to_text, to_csv, to_json, to_dict, to_imgt_regions
 from anarcii.output_data_processing.schemes import convert_number_scheme
-
 from anarcii.output_data_processing.convert_to_legacy_format import convert_output
 
 
@@ -63,42 +63,41 @@ class Anarcii:
         self.print_initial_configuration()
 
         # # shark model
-        self.shark_model = ModelRunner("shark", 
-                                    self.mode, self.batch_size, self.device, self.verbose)
-        self.shark_window = WindowFinder("shark",
-                                      self.mode, self.batch_size, self.device, self.scfv)
+        # self.shark_model = ModelRunner("shark", 
+        #                             self.mode, self.batch_size, self.device, self.verbose)
+        # self.shark_window = WindowFinder("shark",
+        #                               self.mode, self.batch_size, self.device, self.scfv)
         # Antibody model
         self.ig_model = ModelRunner("antibody", 
                                     self.mode, self.batch_size, self.device, self.verbose)
         self.ig_window = WindowFinder("antibody",
                                       self.mode, self.batch_size, self.device, self.scfv)
         # TCR model
-        self.tcr_model = ModelRunner("tcr",
-                                     self.mode, self.batch_size, self.device, self.verbose)
-        self.tcr_window = WindowFinder("tcr",
-                                       self.mode, self.batch_size, self.device, self.scfv)
+        # self.tcr_model = ModelRunner("tcr",
+        #                              self.mode, self.batch_size, self.device, self.verbose)
+        # self.tcr_window = WindowFinder("tcr",
+        #                                self.mode, self.batch_size, self.device, self.scfv)
         
 
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (".pdb" in seqs or ".mmcif" in seqs):
             # classify the  sequences into tcrs or antibodies
-            # antibodies, tcrs = classify(seqs)
-
+            antibodies, tcrs = classifii(seqs)
+            if self.verbose:
+                print("### Ran antibody/TCR classifier. ###\n")
 
             # Run both sets of numbering.
             if self.verbose:
                 print("### Running Antibody model ###")
-            antis = self.number_with_type(seqs, "antibody")
+            antis_out = self.number_with_type(antibodies, "antibody")
 
             if self.verbose:
                 print("## Running TCR model. ###")
-            tcrs = self.number_with_type(seqs, "tcr")
+            tcrs_out = self.number_with_type(tcrs, "tcr")
 
             # Choose the best option based on the conserved residues and likelihoods.
-            self._last_numbered_output = pick_type(antis, tcrs)
+            self._last_numbered_output = join_mixed_types(antis_out, tcrs_out)
 
-            if self.verbose:
-                print("### Picked highest scheme based on conserved residues and scores. ###\n")
             return convert_output(ls=self._last_numbered_output, 
                                   format=self.output_format, 
                                   verbose=self.verbose)
