@@ -5,12 +5,13 @@ from anarcii.pipeline.configuration_utils import configure_cpus, configure_devic
 from anarcii.pipeline.anarcii_methods import print_initial_configuration
 
 # Functions for processing input
-from anarcii.pipeline.anarcii_utils import read_fasta, pick_type, count_lines_with_greater_than, is_tuple_list, split_sequence
+from anarcii.pipeline.anarcii_utils import read_fasta, count_lines_with_greater_than, is_tuple_list, split_sequence
 from anarcii.pipeline.anarcii_constants import max_seqs_len
 from anarcii.pipeline.anarcii_batch_process import batch_process
 from anarcii.pdb_process.pdb import renumber_pdb_with_anarcii
 
-from anarcii.classifier.classifii import classifii, join_mixed_types
+from anarcii.classifier.classifii import Classifii
+from anarcii.classifier.classifii_utils import join_mixed_types
 
 # Classes
 from anarcii.input_data_processing.sequences import SequenceProcessor
@@ -81,8 +82,11 @@ class Anarcii:
 
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (".pdb" in seqs or ".mmcif" in seqs):
+            
             # classify the  sequences into tcrs or antibodies
-            antibodies, tcrs = classifii(seqs)
+            classifii_seqs = Classifii(batch_size=self.batch_size, device=self.device)
+
+            antibodies, tcrs = classifii_seqs(seqs)
             if self.verbose:
                 print("### Ran antibody/TCR classifier. ###\n")
 
@@ -91,9 +95,11 @@ class Anarcii:
                 print("### Running Antibody model ###")
             antis_out = self.number_with_type(antibodies, "antibody")
 
+
             if self.verbose:
                 print("## Running TCR model. ###")
             tcrs_out = self.number_with_type(tcrs, "tcr")
+
 
             # Choose the best option based on the conserved residues and likelihoods.
             self._last_numbered_output = join_mixed_types(antis_out, tcrs_out)
