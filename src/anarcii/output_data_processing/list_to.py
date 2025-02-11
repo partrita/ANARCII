@@ -2,19 +2,20 @@ import re
 import pandas as pd
 import json
 
+
 def write_csv(ls, filename=None):
     # Works on the simple output
     rows = []
-    for sublist in ls:    
-        row_dict = {}  
-        # Two rows for each sublist: 
-        # one for the first and 
+    for sublist in ls:
+        row_dict = {}
+        # Two rows for each sublist:
+        # one for the first and
         # one for the second element of the tuples
-        
+
         nums = sublist[0]
-        name = sublist[1]['query_name']
-        chain = sublist[1]['chain_type']
-        score = sublist[1]['score']
+        name = sublist[1]["query_name"]
+        chain = sublist[1]["chain_type"]
+        score = sublist[1]["score"]
 
         row_dict["Name"] = name
         # Gives an F for the first letter in Fail.
@@ -29,7 +30,7 @@ def write_csv(ls, filename=None):
             key = str(res[0][0]) + res[0][1].strip()
             value = res[1].strip()
             row_dict[key] = value
-            
+
         rows.append(row_dict)
 
     df = pd.DataFrame(rows)
@@ -39,17 +40,20 @@ def write_csv(ls, filename=None):
         match = re.match(r"(\d+)([A-Z]?)", column)
         if match:
             num_part = int(match.group(1))  # Numeric part as integer
-            letter_part = match.group(2)    # Alphabetical part as string
+            letter_part = match.group(2)  # Alphabetical part as string
             return (num_part, letter_part)
         else:
             # For columns that don't match, return a tuple that will sort them
-            # after the ones that do match. 
+            # after the ones that do match.
             # Here, we use a large number and the column itself as a fallback.
-            return (float('inf'), column)
+            return (float("inf"), column)
 
     # # Sorting the columns list based on the custom key
-    sorted_columns = sorted([col for col in df.columns if col not in {'Name', 'Chain', 'Score'}], key=split_key)
-    sorted_columns =  ['Name', 'Chain', 'Score'] + sorted_columns
+    sorted_columns = sorted(
+        [col for col in df.columns if col not in {"Name", "Chain", "Score"}],
+        key=split_key,
+    )
+    sorted_columns = ["Name", "Chain", "Score"] + sorted_columns
 
     df = df[sorted_columns]
 
@@ -58,21 +62,21 @@ def write_csv(ls, filename=None):
 
     return df
 
-    
+
 def write_text(ls, file_path):
     with open(file_path, "w") as file:
         for sublist in ls:
             nums = sublist[0]
-            name = sublist[1]['query_name']
-            chain = sublist[1]['chain_type']
-            score = sublist[1]['score']
+            name = sublist[1]["query_name"]
+            chain = sublist[1]["chain_type"]
+            score = sublist[1]["score"]
 
             line = f"{name}, {chain}, {score}, {repr(nums)}\n"
             file.write(line)
 
 
 def write_json(data, file_path):
-    with open(file_path, 'w') as json_file: 
+    with open(file_path, "w") as json_file:
         json.dump(data, json_file, indent=2)
 
 
@@ -80,7 +84,7 @@ def return_dict(ls):
     dt = {}
     for sublist in ls:
         nums = sublist[0]
-        name = sublist[1]['query_name']
+        name = sublist[1]["query_name"]
         dt[name] = nums
     return dt
 
@@ -88,13 +92,13 @@ def return_dict(ls):
 def return_imgt_regions(ls):
     # Define IMGT regions with ranges
     imgt_regions = {
-        'fw1': range(1, 27),
-        'cdr1': range(27, 39),
-        'fw2': range(39, 56),
-        'cdr2': range(56, 66),
-        'fw3': range(66, 105),
-        'cdr3': range(105, 118),
-        'fw4': range(118, 129)
+        "fw1": range(1, 27),
+        "cdr1": range(27, 39),
+        "fw2": range(39, 56),
+        "cdr2": range(56, 66),
+        "fw3": range(66, 105),
+        "cdr3": range(105, 118),
+        "fw4": range(118, 129),
     }
 
     ls_of_region_dicts = []
@@ -110,5 +114,3 @@ def return_imgt_regions(ls):
         ls_of_region_dicts.append(regions)
 
     return ls_of_region_dicts
-
-

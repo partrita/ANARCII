@@ -3,8 +3,8 @@ import torch
 
 def split_seq(seq, n_jump, window_size=90):
     jump = n_jump
-    num = (len(seq)-window_size) // jump
-    ls = [seq[(jump*x):(jump*x + window_size)] for x in range(num)]
+    num = (len(seq) - window_size) // jump
+    ls = [seq[(jump * x) : (jump * x + window_size)] for x in range(num)]
     return ls
 
 
@@ -19,8 +19,7 @@ def pick_window(list_of_seqs, model):
             tokenised_seq = torch.from_numpy(aa.encode(bookend_seq))
             ls.append(tokenised_seq)
         except KeyError as e:
-            print(
-                f"Sequence could not be numbered. Contains an invalid residue: {e}")
+            print(f"Sequence could not be numbered. Contains an invalid residue: {e}")
             ls.append([])
 
     max_index = model(ls)
@@ -38,8 +37,7 @@ def find_scfvs(list_of_seqs, model):
             tokenised_seq = torch.from_numpy(aa.encode(bookend_seq))
             ls.append(tokenised_seq)
         except KeyError as e:
-            print(
-                f"Sequence could not be numbered. Contains an invalid residue: {e}")
+            print(f"Sequence could not be numbered. Contains an invalid residue: {e}")
             ls.append([])
 
     list_of_indices = model(ls)

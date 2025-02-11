@@ -1,12 +1,7 @@
 from anarcii.input_data_processing.sequences import SequenceProcessor
-from anarcii.inference.model_runner import ModelRunner
-from anarcii.inference.window_selector import WindowFinder
-
-import json
 
 
 def batch_process(ls, model, window_model, verbose, txt_file):
-
     counter = 1
     for chunk in ls:
         print(f"\nChunk: {counter} of {len(ls)}.")
@@ -14,7 +9,7 @@ def batch_process(ls, model, window_model, verbose, txt_file):
         processed_seqs = sequences.process_sequences()
 
         # Process and write to the temp file
-        numbered_seqs=model(processed_seqs)
+        numbered_seqs = model(processed_seqs)
 
         with open(txt_file, "a") as file:
             for item in numbered_seqs:

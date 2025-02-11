@@ -8,16 +8,18 @@ import torch
 
 import matplotlib.pyplot as plt
 
+
 def first_index_above_threshold(preds, threshold=35):
     for i, val in enumerate(preds):
         if val > threshold:
             return i
-    return None 
+    return None
+
 
 def detect_peaks(data, threshold=35, min_distance=50):
     peaks = []
     peak_values = []
-    
+
     for i in range(1, len(data) - 1):
         # Check if current point is a peak above the threshold
         if data[i] > data[i - 1] and data[i] > data[i + 1] and data[i] > threshold:
@@ -25,34 +27,43 @@ def detect_peaks(data, threshold=35, min_distance=50):
             if len(peaks) == 0 or (i - peaks[-1] >= min_distance):
                 peaks.append(i)
                 peak_values.append(data[i])
-    
-    print("Number of high scoring chains found: ", len(peaks), "\n",
-          "Indices: ", peaks, "\n",
-          "Values: ", peak_values)
-    
+
+    print(
+        "Number of high scoring chains found: ",
+        len(peaks),
+        "\n",
+        "Indices: ",
+        peaks,
+        "\n",
+        "Values: ",
+        peak_values,
+    )
+
     #### Plot the data and peaks
     plt.figure(figsize=(10, 6))
-    plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
-    plt.axhline(y=threshold, color='r', linestyle='--', label=f'Threshold ({threshold})')
-    plt.scatter(peaks, [data[i] for i in peaks], color='orange', label='Detected Peaks', zorder=5)
+    plt.plot(data, marker="o", linestyle="-", color="b", label="Data")
+    plt.axhline(
+        y=threshold, color="r", linestyle="--", label=f"Threshold ({threshold})"
+    )
+    plt.scatter(
+        peaks,
+        [data[i] for i in peaks],
+        color="orange",
+        label="Detected Peaks",
+        zorder=5,
+    )
     plt.title("Data with Potential Peaks")
     plt.xlabel("Index")
     plt.ylabel("Score of window")
     plt.legend()
     plt.grid(True)
     plt.show()
-    
+
     return peaks
 
 
 class WindowFinder:
-    def __init__(self,
-                 sequence_type,
-                 mode,
-                 batch_size,
-                 device,
-                 scfv):
-
+    def __init__(self, sequence_type, mode, batch_size, device, scfv):
         self.type = sequence_type.lower()
         self.mode = mode.lower()
         self.batch_size = batch_size
@@ -72,9 +83,7 @@ class WindowFinder:
         self.model = self._load_model()
 
     def _load_model(self):
-        model_loader = Loader(self.type,
-                              self.mode,
-                              self.device)
+        model_loader = Loader(self.type, self.mode, self.device)
         return model_loader.model
 
     def __call__(self, list_of_seqs):
@@ -94,9 +103,9 @@ class WindowFinder:
                 input = src[:, 0].unsqueeze(1)
 
                 trg_pad_mask, trg_causal_mask = self.model.make_trg_mask(input)
-                output = self.model.decoder(input, enc_src,
-                                            trg_pad_mask, trg_causal_mask,
-                                            src_mask)
+                output = self.model.decoder(
+                    input, enc_src, trg_pad_mask, trg_causal_mask, src_mask
+                )
                 likelihoods = output.topk(1, dim=2).values[:, 0]
 
                 for batch_no in range(batch_size):
@@ -120,7 +129,7 @@ class WindowFinder:
                 else:
                     return [preds.index(max(preds))]
 
-            if over_thirty != None:
+            if over_thirty is not None:
                 return over_thirty
             else:
                 return preds.index(max(preds))
