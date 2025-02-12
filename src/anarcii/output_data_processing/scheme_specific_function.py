@@ -97,7 +97,7 @@ def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
         return annotations
 
     else:
-        raise AssertionError("Unimplemented scheme")
+        exit("Unimplemented scheme.")
 
 
 ### ### HEAVY FUNCTIONS ### ###
