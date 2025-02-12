@@ -1,6 +1,9 @@
 # configuration_utils.py
-import os, psutil
+import os
+
+import psutil
 import torch
+
 
 def configure_cpus(ncpu: int) -> int:
     """Configure CPU allocation based on availability and user input."""
@@ -16,11 +19,13 @@ def configure_cpus(ncpu: int) -> int:
         torch.set_num_threads(available_cpus)
         return available_cpus
 
+
 def configure_device(cpu: bool, ncpu: int) -> torch.device:
     """Configure computation device (CPU or GPU)."""
     device = torch.device("cpu") if cpu else torch.device("cuda")
     print(f"Using device {str(device).upper()} with {ncpu} CPUs")
     return device
+
 
 def get_available_cpus():
     try:

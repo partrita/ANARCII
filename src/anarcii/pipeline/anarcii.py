@@ -1,48 +1,60 @@
 import os
 import time
 
-from anarcii.pipeline.configuration_utils import configure_cpus, configure_device
-from anarcii.pipeline.anarcii_methods import print_initial_configuration
-
-# Functions for processing input
-from anarcii.pipeline.anarcii_utils import read_fasta, count_lines_with_greater_than, is_tuple_list, split_sequence
-from anarcii.pipeline.anarcii_constants import max_seqs_len
-from anarcii.pipeline.anarcii_batch_process import batch_process
-from anarcii.pdb_process.pdb import renumber_pdb_with_anarcii
-
 from anarcii.classifier.classifii import Classifii
 from anarcii.classifier.classifii_utils import join_mixed_types
-
-# Classes
-from anarcii.input_data_processing.sequences import SequenceProcessor
 from anarcii.inference.model_runner import ModelRunner
 from anarcii.inference.window_selector import WindowFinder
 
-# Processing output
-from anarcii.pipeline.anarcii_methods import to_text, to_csv, to_json, to_dict, to_imgt_regions
-from anarcii.output_data_processing.schemes import convert_number_scheme
+# Classes
+from anarcii.input_data_processing.sequences import SequenceProcessor
 from anarcii.output_data_processing.convert_to_legacy_format import convert_output
+from anarcii.output_data_processing.schemes import convert_number_scheme
+from anarcii.pdb_process.pdb import renumber_pdb_with_anarcii
+from anarcii.pipeline.anarcii_batch_process import batch_process
+from anarcii.pipeline.anarcii_constants import max_seqs_len
+
+# Processing output
+from anarcii.pipeline.anarcii_methods import (
+    print_initial_configuration,
+    to_csv,
+    to_dict,
+    to_imgt_regions,
+    to_json,
+    to_text,
+)
+
+# Functions for processing input
+from anarcii.pipeline.anarcii_utils import (
+    count_lines_with_greater_than,
+    is_tuple_list,
+    read_fasta,
+    split_sequence,
+)
+from anarcii.pipeline.configuration_utils import configure_cpus, configure_device
 
 
 # This is the orchestrator of the whole pipeline.
 class Anarcii:
-    def __init__(self,
-                 seq_type: str = "antibody",
-                 mode: str = "accuracy",
-                 scfv_or_concatenated_chains: bool = False, # For use with SCFVs or artificial constructs
-                 batch_size: int = 8,
-                 cpu: bool = False,
-                 ncpu: int = -1,
-                 output_format: str = "simple", # legacy for old ANARCI
-                 verbose: bool = False,
-                 debug_input = False):
-        
+    def __init__(
+        self,
+        seq_type: str = "antibody",
+        mode: str = "accuracy",
+        # For use with SCFVs or artificial constructs:
+        scfv_or_concatenated_chains: bool = False,
+        batch_size: int = 8,
+        cpu: bool = False,
+        ncpu: int = -1,
+        output_format: str = "simple",  # legacy for old ANARCI
+        verbose: bool = False,
+        debug_input=False,
+    ):
         # need checks that all adhere before running code.
         self.seq_type = seq_type.lower()
         self.mode = mode.lower()
         self.batch_size = batch_size
         self.verbose = verbose
-        self.cpu=cpu
+        self.cpu = cpu
         self.text_ = "output.txt"
         self.max_len_exceed = False
         self._last_numbered_output = None
@@ -64,36 +76,42 @@ class Anarcii:
         self.print_initial_configuration()
 
         # # shark model
-        # self.shark_model = ModelRunner("shark", 
-        #                             self.mode, self.batch_size, self.device, self.verbose)
-        # self.shark_window = WindowFinder("shark",
-        #                               self.mode, self.batch_size, self.device, self.scfv)
+        # self.shark_model = ModelRunner(
+        #     "shark", self.mode, self.batch_size, self.device, self.verbose
+        # )
+        # self.shark_window = WindowFinder(
+        #     "shark", self.mode, self.batch_size, self.device, self.scfv
+        # )
         # Antibody model
-        self.ig_model = ModelRunner("antibody", 
-                                    self.mode, self.batch_size, self.device, self.verbose)
-        self.ig_window = WindowFinder("antibody",
-                                      self.mode, self.batch_size, self.device, self.scfv)
+        self.ig_model = ModelRunner(
+            "antibody", self.mode, self.batch_size, self.device, self.verbose
+        )
+        self.ig_window = WindowFinder(
+            "antibody", self.mode, self.batch_size, self.device, self.scfv
+        )
         # TCR model
-        # self.tcr_model = ModelRunner("tcr",
-        #                              self.mode, self.batch_size, self.device, self.verbose)
-        # self.tcr_window = WindowFinder("tcr",
-        #                                self.mode, self.batch_size, self.device, self.scfv)
-        
-
+        # self.tcr_model = ModelRunner(
+        #     "tcr", self.mode, self.batch_size, self.device, self.verbose
+        # )
+        # self.tcr_window = WindowFinder(
+        #     "tcr", self.mode, self.batch_size, self.device, self.scfv
+        # )
 
     def number(self, seqs):
-        if self.seq_type.lower() == "unknown" and not (".pdb" in seqs or ".mmcif" in seqs):
+        if self.seq_type.lower() == "unknown" and not (
+            ".pdb" in seqs or ".mmcif" in seqs
+        ):
             # classify the  sequences into tcrs or antibodies
             classifii_seqs = Classifii(batch_size=self.batch_size, device=self.device)
 
             if isinstance(seqs, list):
-                if is_tuple_list(seqs):                   
+                if is_tuple_list(seqs):
                     dict_of_seqs = {}
                     for t in seqs:
                         split_seqs = split_sequence(t[0], t[1], self.verbose)
                         dict_of_seqs.update(split_seqs)
-            
-                elif not is_tuple_list(seqs):        
+
+                elif not is_tuple_list(seqs):
                     dict_of_seqs = {}
                     for n, t in enumerate(seqs):
                         name = f"seq{n}"
@@ -105,9 +123,15 @@ class Anarcii:
                 fastas = read_fasta(seqs, self.verbose)
                 dict_of_seqs = {t[0]: t[1] for t in fastas}
 
-            elif isinstance(seqs, str) and os.path.exists(seqs) and (".pdb" in seqs or ".mmcif" in seqs):
-                print("Renumbering of a PDB file does not currently work in unknown mode.")
-                return 
+            elif (
+                isinstance(seqs, str)
+                and os.path.exists(seqs)
+                and (".pdb" in seqs or ".mmcif" in seqs)
+            ):
+                print(
+                    "Renumbering of a PDB file does not currently work in unknown mode."
+                )
+                return
 
             list_of_tuples_pre_classifii = list(dict_of_seqs.items())
             list_of_names = list(dict_of_seqs.keys())
@@ -120,35 +144,43 @@ class Anarcii:
             antis_out = self.number_with_type(antibodies, "antibody")
             tcrs_out = self.number_with_type(tcrs, "antibody")
 
-            self._last_numbered_output = join_mixed_types(antis_out, tcrs_out, list_of_names)
+            self._last_numbered_output = join_mixed_types(
+                antis_out, tcrs_out, list_of_names
+            )
 
-            return convert_output(ls=self._last_numbered_output, 
-                                  format=self.output_format, 
-                                  verbose=self.verbose)
-        
-        elif self.seq_type.lower() == "unknown" and (".pdb" in seqs or ".mmcif" in seqs):
+            return convert_output(
+                ls=self._last_numbered_output,
+                format=self.output_format,
+                verbose=self.verbose,
+            )
+
+        elif self.seq_type.lower() == "unknown" and (
+            ".pdb" in seqs or ".mmcif" in seqs
+        ):
             # This does not matter as the function is run within so set to antibody
             self._last_numbered_output = self.number_with_type(seqs, "antibody")
-            return convert_output(ls=self._last_numbered_output, 
-                                  format=self.output_format, 
-                                  verbose=self.verbose)
-            
+            return convert_output(
+                ls=self._last_numbered_output,
+                format=self.output_format,
+                verbose=self.verbose,
+            )
+
         else:
             self._last_numbered_output = self.number_with_type(seqs, self.seq_type)
-            return convert_output(ls=self._last_numbered_output, 
-                                  format=self.output_format, 
-                                  verbose=self.verbose)
-        
+            return convert_output(
+                ls=self._last_numbered_output,
+                format=self.output_format,
+                verbose=self.verbose,
+            )
 
     def to_scheme(self, scheme="imgt"):
         # Check if there's output to save
         if self._last_numbered_output is None:
             raise ValueError("No output to convert. Run the model first.")
-        
+
         converted_seqs = convert_number_scheme(self._last_numbered_output, scheme)
         print(f"Last output converted to {scheme}")
         return converted_seqs
-
 
     def number_with_type(self, seqs, inner_type):
         if inner_type == "shark":
@@ -172,12 +204,14 @@ class Anarcii:
 
         chunk_list = []
         begin = time.time()
-        
+
         if isinstance(seqs, list):
             if is_tuple_list(seqs):
                 if self.verbose:
-                    print("Running on a list of tuples of format: [(name,sequence), ...].")
-                    
+                    print(
+                        "Running on a list of tuples of format: [(name,sequence), ...]."
+                    )
+
                 dict_of_seqs = {}
                 for t in seqs:
                     # Split each sequence as needed and update the dictionary
@@ -187,7 +221,7 @@ class Anarcii:
             elif not is_tuple_list(seqs):
                 if self.verbose:
                     print("Running on a list of strings: [sequence, ...].")
-                
+
                 dict_of_seqs = {}
                 for n, t in enumerate(seqs):
                     name = f"seq{n}"
@@ -201,75 +235,94 @@ class Anarcii:
             # If the list is huge - breakup into chunks of 1M.
             if len(dict_of_seqs) > max_seqs_len:
                 print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
-                num_chunks = (len(dict_of_seqs)//max_seqs_len)+1
+                num_chunks = (len(dict_of_seqs) // max_seqs_len) + 1
                 chunk_list = {}
                 for i in range(num_chunks):
-                    chunk_list[i] = dict_of_seqs[i*max_seqs_len: (i+1)*max_seqs_len]
+                    chunk_list[i] = dict_of_seqs[
+                        i * max_seqs_len : (i + 1) * max_seqs_len
+                    ]
                 self.max_len_exceed = True
 
         # Fasta file
         elif isinstance(seqs, str) and os.path.exists(seqs) and ".fa" in seqs:
             if self.verbose:
                 print("Running on fasta file.")
-            
+
             num_seqs = count_lines_with_greater_than(seqs)
             if self.verbose:
                 print("Length of sequence list: ", num_seqs)
 
             if num_seqs > max_seqs_len:
                 print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
-                num_chunks = (num_seqs//max_seqs_len)+1
+                num_chunks = (num_seqs // max_seqs_len) + 1
                 for i in range(num_chunks):
-                    fastas = read_fasta(seqs, self.verbose)[i*max_seqs_len: (i+1)*max_seqs_len]
+                    fastas = read_fasta(seqs, self.verbose)[
+                        i * max_seqs_len : (i + 1) * max_seqs_len
+                    ]
                     chunk_list.append({t[0]: t[1] for t in fastas})
                 self.max_len_exceed = True
-            
+
             else:
                 fastas = read_fasta(seqs, self.verbose)
                 dict_of_seqs = {t[0]: t[1] for t in fastas}
 
-        elif isinstance(seqs, str) and os.path.exists(seqs) and (".pdb" in seqs or ".mmcif" in seqs):
+        elif (
+            isinstance(seqs, str)
+            and os.path.exists(seqs)
+            and (".pdb" in seqs or ".mmcif" in seqs)
+        ):
             # This makes an infinite loop if unknown >>> Need to separate it out.
-            numbered_chains = renumber_pdb_with_anarcii(seqs,
-                                                        inner_seq_type=self.seq_type,
-                                                        inner_mode=self.mode,
-                                                        inner_batch_size=self.batch_size,
-                                                        inner_cpu=self.cpu)
+            numbered_chains = renumber_pdb_with_anarcii(
+                seqs,
+                inner_seq_type=self.seq_type,
+                inner_mode=self.mode,
+                inner_batch_size=self.batch_size,
+                inner_cpu=self.cpu,
+            )
             return numbered_chains
 
         else:
-            print("Input is not a list of sequences, nor a valid path to a fasta file (must end in .fa or .fasta), nor a pdb file (.pdb).")
+            print(
+                "Input is not a list of sequences, nor a valid path to a fasta file "
+                "(must end in .fa or .fasta), nor a pdb file (.pdb)."
+            )
             return []
-        
 
         if len(chunk_list) > 1:
-            numbered_seqs = batch_process(chunk_list, model, window_model, self.verbose, self.text_)
-            
-            end = time.time()            
-            runtime = round((end - begin)/60, 2)
+            numbered_seqs = batch_process(
+                chunk_list, model, window_model, self.verbose, self.text_
+            )
+
+            end = time.time()
+            runtime = round((end - begin) / 60, 2)
 
             if self.verbose:
                 print(f"Numbered {num_seqs} seqs in {runtime} mins. \n")
 
-            print(f"Output written to {self.text_}. Convert to csv or text with: model.to_csv(filepath) or model.to_text(filepath) ")
+            print(
+                f"Output written to {self.text_}. Convert to csv or text with: "
+                "model.to_csv(filepath) or model.to_text(filepath)"
+            )
 
             return numbered_seqs
 
         else:
             # instantiate the Sequences class and process
-            sequences = SequenceProcessor(dict_of_seqs, model, window_model, self.verbose, self.scfv)
+            sequences = SequenceProcessor(
+                dict_of_seqs, model, window_model, self.verbose, self.scfv
+            )
             processed_seqs = sequences.process_sequences()
 
-            # ==============================================================================
+            # ==========================================================================
             numbered_seqs = model(processed_seqs)
-            # ==============================================================================
+            # ==========================================================================
 
-            end = time.time()            
-            runtime = round((end - begin)/60, 2)
+            end = time.time()
+            runtime = round((end - begin) / 60, 2)
 
             if self.verbose:
                 print(f"Numbered {len(numbered_seqs)} seqs in {runtime} mins. \n")
-            
+
             if self.debug_input:
                 print("Printing list of input seqs.")
                 print(dict_of_seqs)
