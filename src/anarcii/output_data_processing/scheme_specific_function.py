@@ -3,7 +3,7 @@ from anarcii.inference.inference_utils import alphabet
 
 
 def scheme_specifics(regions, scheme, chain, chain_type):
-    construct_scheme = scheme + "_" + chain
+    construct_scheme = "_".join([scheme, chain]) if chain else scheme
     function = function_dict[construct_scheme]
 
     # The complexity of AHo means that it needs the exact chain type (H, K or L).

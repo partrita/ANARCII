@@ -28,7 +28,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
 
     nums = anarcii_numbered_seq[0]
     name = anarcii_numbered_seq[1]["query_name"]
-    chain = anarcii_numbered_seq[1]["chain_type"]
+    chain_type = anarcii_numbered_seq[1]["chain_type"]
     score = anarcii_numbered_seq[1]["score"]
 
     query_state = ["X" if x[0][1] == " " else "I" for x in nums]
@@ -132,11 +132,13 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
 
     ##### Renumbering required for specific regions. #####
     ## >> Go to scheme_specific_function.py file >>>
+    scheme, *chain = scheme_name.split("_")
+    chain = chain[0] if chain else None
     _regions = scheme_specifics(
         regions=_regions,
-        scheme=scheme_name.split("_")[0],
-        chain=scheme_name.split("_")[1],
-        chain_type=chain,
+        scheme=scheme,
+        chain=chain,
+        chain_type=chain_type,
     )
 
     # print(_regions)
@@ -158,7 +160,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     return (
         gap_missing(unpacked_regions),
         {
-            "chain_type": chain,
+            "chain_type": chain_type,
             "score": score,
             "query_start": None,
             "query_end": None,
