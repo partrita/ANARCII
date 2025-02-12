@@ -64,9 +64,8 @@ def build_inward_list(length, start_num, end_num):
 
 
 def format_output(indices, names, numbering, alignment):
-    assert len(indices) == len(names) == len(numbering) == len(alignment), (
-        "Length of names does not equal predictions, an error has occurred."
-    )
+    if not len(indices) == len(names) == len(numbering) == len(alignment):
+        exit("Length of names does not equal predictions, an error has occurred.")
 
     # Update `align` with `query_name`
     for nm, align in zip(names, alignment):

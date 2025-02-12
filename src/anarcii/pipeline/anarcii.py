@@ -1,27 +1,37 @@
 import os
 import time
 
-from anarcii.pipeline.configuration_utils import configure_cpus, configure_device
-from anarcii.pipeline.anarcii_methods import print_initial_configuration
-
-# Functions for processing input
-from anarcii.pipeline.anarcii_utils import read_fasta, count_lines_with_greater_than, is_tuple_list, split_sequence
-from anarcii.pipeline.anarcii_constants import max_seqs_len
-from anarcii.pipeline.anarcii_batch_process import batch_process
-from anarcii.pdb_process.pdb import renumber_pdb_with_anarcii
-
 from anarcii.classifier.classifii import Classifii
 from anarcii.classifier.classifii_utils import join_mixed_types
-
-# Classes
-from anarcii.input_data_processing.sequences import SequenceProcessor
 from anarcii.inference.model_runner import ModelRunner
 from anarcii.inference.window_selector import WindowFinder
 
-# Processing output
-from anarcii.pipeline.anarcii_methods import to_text, to_csv, to_json, to_dict, to_imgt_regions
-from anarcii.output_data_processing.schemes import convert_number_scheme
+# Classes
+from anarcii.input_data_processing.sequences import SequenceProcessor
 from anarcii.output_data_processing.convert_to_legacy_format import convert_output
+from anarcii.output_data_processing.schemes import convert_number_scheme
+from anarcii.pdb_process.pdb import renumber_pdb_with_anarcii
+from anarcii.pipeline.anarcii_batch_process import batch_process
+from anarcii.pipeline.anarcii_constants import max_seqs_len
+
+# Processing output
+from anarcii.pipeline.anarcii_methods import (
+    print_initial_configuration,
+    to_csv,
+    to_dict,
+    to_imgt_regions,
+    to_json,
+    to_text,
+)
+
+# Functions for processing input
+from anarcii.pipeline.anarcii_utils import (
+    count_lines_with_greater_than,
+    is_tuple_list,
+    read_fasta,
+    split_sequence,
+)
+from anarcii.pipeline.configuration_utils import configure_cpus, configure_device
 
 
 # This is the orchestrator of the whole pipeline.
@@ -73,17 +83,19 @@ class Anarcii:
         #     "shark", self.mode, self.batch_size, self.device, self.scfv
         # )
         # Antibody model
-        self.ig_model = ModelRunner("antibody", 
-                                    self.mode, self.batch_size, self.device, self.verbose)
-        self.ig_window = WindowFinder("antibody",
-                                      self.mode, self.batch_size, self.device, self.scfv)
+        self.ig_model = ModelRunner(
+            "antibody", self.mode, self.batch_size, self.device, self.verbose
+        )
+        self.ig_window = WindowFinder(
+            "antibody", self.mode, self.batch_size, self.device, self.scfv
+        )
         # TCR model
-        # self.tcr_model = ModelRunner("tcr",
-        #                              self.mode, self.batch_size, self.device, self.verbose)
-        # self.tcr_window = WindowFinder("tcr",
-        #                                self.mode, self.batch_size, self.device, self.scfv)
-        
-
+        # self.tcr_model = ModelRunner(
+        #     "tcr", self.mode, self.batch_size, self.device, self.verbose
+        # )
+        # self.tcr_window = WindowFinder(
+        #     "tcr", self.mode, self.batch_size, self.device, self.scfv
+        # )
 
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (
@@ -93,13 +105,13 @@ class Anarcii:
             classifii_seqs = Classifii(batch_size=self.batch_size, device=self.device)
 
             if isinstance(seqs, list):
-                if is_tuple_list(seqs):                   
+                if is_tuple_list(seqs):
                     dict_of_seqs = {}
                     for t in seqs:
                         split_seqs = split_sequence(t[0], t[1], self.verbose)
                         dict_of_seqs.update(split_seqs)
-            
-                elif not is_tuple_list(seqs):        
+
+                elif not is_tuple_list(seqs):
                     dict_of_seqs = {}
                     for n, t in enumerate(seqs):
                         name = f"seq{n}"
@@ -111,9 +123,15 @@ class Anarcii:
                 fastas = read_fasta(seqs, self.verbose)
                 dict_of_seqs = {t[0]: t[1] for t in fastas}
 
-            elif isinstance(seqs, str) and os.path.exists(seqs) and (".pdb" in seqs or ".mmcif" in seqs):
-                print("Renumbering of a PDB file does not currently work in unknown mode.")
-                return 
+            elif (
+                isinstance(seqs, str)
+                and os.path.exists(seqs)
+                and (".pdb" in seqs or ".mmcif" in seqs)
+            ):
+                print(
+                    "Renumbering of a PDB file does not currently work in unknown mode."
+                )
+                return
 
             list_of_tuples_pre_classifii = list(dict_of_seqs.items())
             list_of_names = list(dict_of_seqs.keys())
@@ -126,13 +144,19 @@ class Anarcii:
             antis_out = self.number_with_type(antibodies, "antibody")
             tcrs_out = self.number_with_type(tcrs, "antibody")
 
-            self._last_numbered_output = join_mixed_types(antis_out, tcrs_out, list_of_names)
+            self._last_numbered_output = join_mixed_types(
+                antis_out, tcrs_out, list_of_names
+            )
 
-            return convert_output(ls=self._last_numbered_output, 
-                                  format=self.output_format, 
-                                  verbose=self.verbose)
-        
-        elif self.seq_type.lower() == "unknown" and (".pdb" in seqs or ".mmcif" in seqs):
+            return convert_output(
+                ls=self._last_numbered_output,
+                format=self.output_format,
+                verbose=self.verbose,
+            )
+
+        elif self.seq_type.lower() == "unknown" and (
+            ".pdb" in seqs or ".mmcif" in seqs
+        ):
             # This does not matter as the function is run within so set to antibody
             self._last_numbered_output = self.number_with_type(seqs, "antibody")
             return convert_output(
@@ -184,8 +208,10 @@ class Anarcii:
         if isinstance(seqs, list):
             if is_tuple_list(seqs):
                 if self.verbose:
-                    print("Running on a list of tuples of format: [(name,sequence), ...].")
-                    
+                    print(
+                        "Running on a list of tuples of format: [(name,sequence), ...]."
+                    )
+
                 dict_of_seqs = {}
                 for t in seqs:
                     # Split each sequence as needed and update the dictionary
@@ -195,7 +221,7 @@ class Anarcii:
             elif not is_tuple_list(seqs):
                 if self.verbose:
                     print("Running on a list of strings: [sequence, ...].")
-                
+
                 dict_of_seqs = {}
                 for n, t in enumerate(seqs):
                     name = f"seq{n}"
@@ -209,10 +235,12 @@ class Anarcii:
             # If the list is huge - breakup into chunks of 1M.
             if len(dict_of_seqs) > max_seqs_len:
                 print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
-                num_chunks = (len(dict_of_seqs)//max_seqs_len)+1
+                num_chunks = (len(dict_of_seqs) // max_seqs_len) + 1
                 chunk_list = {}
                 for i in range(num_chunks):
-                    chunk_list[i] = dict_of_seqs[i*max_seqs_len: (i+1)*max_seqs_len]
+                    chunk_list[i] = dict_of_seqs[
+                        i * max_seqs_len : (i + 1) * max_seqs_len
+                    ]
                 self.max_len_exceed = True
 
         # Fasta file
@@ -280,7 +308,9 @@ class Anarcii:
 
         else:
             # instantiate the Sequences class and process
-            sequences = SequenceProcessor(dict_of_seqs, model, window_model, self.verbose, self.scfv)
+            sequences = SequenceProcessor(
+                dict_of_seqs, model, window_model, self.verbose, self.scfv
+            )
             processed_seqs = sequences.process_sequences()
 
             # ==========================================================================

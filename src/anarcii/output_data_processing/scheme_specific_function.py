@@ -27,9 +27,9 @@ def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
         annotations = [None for _ in range(max(length, 13))]
         front = 0
         back = -1
-        assert (length - 13) < 50, (
-            "Too many insertions for numbering scheme to handle"
-        )  # We ran out of letters.
+        if (length - 13) > 49:
+            # We ran out of letters.
+            exit("Too many insertions for numbering scheme to handle.")
         for i in range(min(length, 13)):
             if i % 2:
                 annotations[back] = (end + back, " ")
@@ -52,9 +52,9 @@ def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
         # print("RENUMBERING CDR3 HEAVY")
         # Number forwards from 93
         insertions = max(length - 10, 0)
-        assert insertions < 27, (
-            "Too many insertions for numbering scheme to handle"
-        )  # We ran out of letters.
+        if insertions > 26:
+            # We ran out of letters.
+            exit("Too many insertions for numbering scheme to handle.")
         ordered_deletions = [
             (100, " "),
             (99, " "),
@@ -77,9 +77,9 @@ def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
         # print("RENUMBERING CDR3 LIGHT")
         # Number forwards from 89
         insertions = max(length - 9, 0)
-        assert insertions < 27, (
-            "Too many insertions for numbering scheme to handle"
-        )  # We ran out of letters.
+        if insertions > 26:
+            # We ran out of letters.
+            exit("Too many insertions for numbering scheme to handle.")
         ordered_deletions = [
             (95, " "),
             (94, " "),
@@ -553,7 +553,8 @@ def aho(regions, chain_type):
         # They are placed on residue 36 alphabetically.
         insertat = annotations.index((36, " ")) + 1  # Always 12
 
-        assert insertat == 12, "AHo numbering failed"
+        if insertat != 12:
+            exit("AHo numbering failed.")
         annotations = (
             annotations[:insertat]
             + [(36, alphabet[a]) for a in range(insertions)]
@@ -611,7 +612,8 @@ def aho(regions, chain_type):
     elif insertions > 0:
         # They are placed on residue 63 alphabetically.
         insertat = annotations.index((63, " ")) + 1  # Always 6
-        assert insertat == 6, "AHo numbering failed"
+        if insertat != 6:
+            exit("AHo numbering failed.")
         annotations = (
             annotations[:insertat]
             + [(63, alphabet[a]) for a in range(insertions)]
@@ -636,7 +638,8 @@ def aho(regions, chain_type):
     elif insertions > 0:
         # They are placed on residue 85 alphabetically.
         insertat = annotations.index((85, " ")) + 1  # Always 8
-        assert insertat == 8, "AHo numbering failed"
+        if insertat != 8:
+            exit("AHo numbering failed.")
         annotations = (
             annotations[:insertat]
             + [(85, alphabet[a]) for a in range(insertions)]
@@ -698,7 +701,8 @@ def aho(regions, chain_type):
     elif insertions > 0:
         # They are placed on residue 123 alphabetically.
         insertat = annotations.index((123, " ")) + 1  # Always 17
-        assert insertat == 17, "AHo numbering failed"
+        if insertat != 17:
+            exit("AHo numbering failed.")
         annotations = (
             annotations[:insertat]
             + [(123, alphabet[a]) for a in range(insertions)]
