@@ -1,12 +1,10 @@
-from .inference_utils import dataloader
-from .model_loader import Loader
 # import matplotlib.pyplot as plt
-
-from ..input_data_processing.tokeniser import Tokenizer
-
 import torch
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+from ..input_data_processing.tokeniser import Tokenizer
+from .inference_utils import dataloader
+from .model_loader import Loader
 
 
 def first_index_above_threshold(preds, threshold=35):
@@ -39,25 +37,25 @@ def detect_peaks(data, threshold=35, min_distance=50):
         peak_values,
     )
 
-    #### Plot the data and peaks
-    plt.figure(figsize=(10, 6))
-    plt.plot(data, marker="o", linestyle="-", color="b", label="Data")
-    plt.axhline(
-        y=threshold, color="r", linestyle="--", label=f"Threshold ({threshold})"
-    )
-    plt.scatter(
-        peaks,
-        [data[i] for i in peaks],
-        color="orange",
-        label="Detected Peaks",
-        zorder=5,
-    )
-    plt.title("Data with Potential Peaks")
-    plt.xlabel("Index")
-    plt.ylabel("Score of window")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    # #### Plot the data and peaks
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(data, marker="o", linestyle="-", color="b", label="Data")
+    # plt.axhline(
+    #     y=threshold, color="r", linestyle="--", label=f"Threshold ({threshold})"
+    # )
+    # plt.scatter(
+    #     peaks,
+    #     [data[i] for i in peaks],
+    #     color="orange",
+    #     label="Detected Peaks",
+    #     zorder=5,
+    # )
+    # plt.title("Data with Potential Peaks")
+    # plt.xlabel("Index")
+    # plt.ylabel("Score of window")
+    # plt.legend()
+    # plt.grid(True)
+    # plt.show()
 
     return peaks
 

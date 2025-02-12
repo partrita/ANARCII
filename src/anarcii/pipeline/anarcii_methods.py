@@ -2,11 +2,11 @@ import ast
 import json
 
 from anarcii.output_data_processing.list_to import (
-    write_csv,
-    write_text,
-    write_json,
     return_dict,
     return_imgt_regions,
+    write_csv,
+    write_json,
+    write_text,
 )
 
 
@@ -15,8 +15,10 @@ def print_initial_configuration(self):
     if self.verbose:
         print(f"Batch size: {self.batch_size}")
         print(
-            "\tSpeed is a balance of batch size and length diversity. Adjust accordingly.\n",
-            "\tSeqs all similar length (+/-5), increase batch size. Mixed lengths (+/-30), reduce.\n",
+            "\tSpeed is a balance of batch size and length diversity. "
+            "Adjust accordingly.\n",
+            "\tSeqs all similar length (+/-5), increase batch size. "
+            "Mixed lengths (+/-30), reduce.\n",
         )
         if not self.cpu:
             if self.batch_size < 512:
@@ -36,7 +38,7 @@ def to_text(self, file_path):
 
     if self.max_len_exceed:
         # The reads and writes line by line and hence saves RAM
-        with open(self.text_, "r") as infile, open(file_path, "w") as outfile:
+        with open(self.text_) as infile, open(file_path, "w") as outfile:
             for line in infile:
                 # Parse the line safely using ast.literal_eval
                 try:
@@ -66,9 +68,11 @@ def to_csv(self, file_path):
 
     if self.max_len_exceed:
         print(
-            "Writing to a aligned CSV file may use a lot of RAM for millions of sequences, consider to_text(filepath) or to_json(filepath) for memory efficient solutions."
+            "Writing to a aligned CSV file may use a lot of RAM for millions of "
+            "sequences, consider to_text(filepath) or to_json(filepath) for memory-"
+            "efficient solutions."
         )
-        with open(self.text_, "r") as file:
+        with open(self.text_) as file:
             loaded_data = [ast.literal_eval(line.strip()) for line in file]
 
         write_csv(loaded_data, file_path)
@@ -85,7 +89,7 @@ def to_json(self, file_path):
         raise ValueError("No output to save. Run the model first.")
 
     if self.max_len_exceed:
-        with open(self.text_, "r") as infile, open(file_path, "w") as outfile:
+        with open(self.text_) as infile, open(file_path, "w") as outfile:
             # Start the JSON array
             outfile.write("[\n")
 
@@ -120,7 +124,7 @@ def to_dict(self):
         raise ValueError("No output. Run the model first.")
 
     if self.max_len_exceed:
-        with open(self.text_, "r") as file:
+        with open(self.text_) as file:
             loaded_data = [ast.literal_eval(line.strip()) for line in file]
         dt = return_dict(loaded_data)
         return dt
@@ -136,7 +140,7 @@ def to_imgt_regions(self):
         raise ValueError("No output. Run the model first.")
 
     if self.max_len_exceed:
-        with open(self.text_, "r") as file:
+        with open(self.text_) as file:
             loaded_data = [ast.literal_eval(line.strip()) for line in file]
         ls = return_imgt_regions(loaded_data)
         return ls

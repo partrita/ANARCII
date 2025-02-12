@@ -1,7 +1,8 @@
-import torch
-import os
-import json
 import importlib.resources as pkg_resources
+import json
+import os
+
+import torch
 
 from . import model
 
@@ -38,7 +39,8 @@ class Loader:
             param_filename = f"{self.type}_4_2_128_512.json"
         else:
             raise ValueError(
-                "Invalid mode specified. Choose either 'speed' or 'accuracy' or 'super'."
+                "Invalid mode specified. Choose either 'speed' or 'accuracy' or "
+                "'super'."
             )
 
         param_path = pkg_resources.files("anarcii.models").joinpath(
@@ -54,7 +56,7 @@ class Loader:
         return params
 
     def _get_model_path(self):
-        model_filename = f"{self.type}_{self.ENC_HEADS}_{self.ENC_LAYERS}_{self.HID_DIM}_{self.ENC_PF_DIM}.pt"
+        model_filename = f"{self.type}_{self.ENC_HEADS}_{self.ENC_LAYERS}_{self.HID_DIM}_{self.ENC_PF_DIM}.pt"  # noqa: E501
 
         model_path = pkg_resources.files("anarcii.models").joinpath(
             self.type, model_filename

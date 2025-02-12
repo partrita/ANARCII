@@ -97,7 +97,8 @@ class EncoderMultiHeadAttentionLayer(nn.Module):
             hid_dim, n_heads, dropout=dropout, batch_first=True
         )
 
-        # Ensure the multi-head attention layer and additional layers are moved to the correct device
+        # Ensure the multi-head attention layer and additional layers are moved to the
+        # correct device
         self.device = device
         self.to(device)
 
@@ -119,7 +120,8 @@ class DecoderMultiHeadAttentionLayer(nn.Module):
             hid_dim, n_heads, dropout=dropout, batch_first=True
         )
 
-        # Ensure the multi-head attention layer and additional layers are moved to the correct device
+        # Ensure the multi-head attention layer and additional layers are moved to the
+        # correct device
         self.device = device
         self.to(device)
 
@@ -242,7 +244,14 @@ class Decoder(nn.Module):
         # enc_src = [batch size, src len, hid dim]
         # src_mask = [batch size, src len]
 
-        # print("Dec shapes: ", trg.shape, enc_src.shape, trg_pad_mask.shape, trg_causal_mask.shape, src_mask.shape)
+        # print(
+        #     "Dec shapes: ",
+        #     trg.shape,
+        #     enc_src.shape,
+        #     trg_pad_mask.shape,
+        #     trg_causal_mask.shape,
+        #     src_mask.shape,
+        # )
 
         batch_size = trg.shape[0]
         trg_len = trg.shape[1]
@@ -296,7 +305,8 @@ class S2S(nn.Module):
         trg_pad_mask = (trg == self.trg_pad_idx).to(self.device)
 
         # trg_pad_mask = [batch size, trg len]
-        # Adjusting shape for broadcasting by adding an extra dimension for trg_len to match causal_mask
+        # Adjusting shape for broadcasting by adding an extra dimension for trg_len to
+        # match causal_mask
         trg_len = trg.shape[1]
 
         # Create a subsequence mask of shape [trg len, trg len]

@@ -1,5 +1,7 @@
 import torch
-from .sequences_utils import split_seq, pick_window, find_scfvs
+
+from .sequences_utils import find_scfvs, pick_window, split_seq
+
 # from anarcii.pipeline.anarcii_constants import n_jump
 
 
@@ -44,7 +46,8 @@ class SequenceProcessor:
                     for value in values:
                         # Extract the window but include residues before = 20
                         # Add 110 to capture the whole thing += 140
-                        # This should give a total length of 160 - without skipping the beginning.
+                        # This should give a total length of 160 - without skipping the
+                        # beginning.
                         start_index = max(
                             (value * n_jump) - 20, 0
                         )  # Ensures start_index is at least 0
@@ -79,7 +82,8 @@ class SequenceProcessor:
             if long_seqs:
                 if self.verbose:
                     print(
-                        "\nLong sequences detected - running in sliding window. This is slow."
+                        "\nLong sequences detected - running in sliding window. "
+                        "This is slow."
                     )
 
                 # Splits the seqeucne in 90 length chunks
@@ -118,7 +122,7 @@ class SequenceProcessor:
         tokenized_seqs = []
 
         for seq in self.seqs:
-            bookend_seq = [aa.start] + [s for s in seq[2]] + [aa.end]
+            bookend_seq = [aa.start] + list(seq[2]) + [aa.end]
             try:
                 tokenized_seq = torch.from_numpy(aa.encode(bookend_seq))
                 tokenized_seqs.append((seq[0], seq[1], tokenized_seq))

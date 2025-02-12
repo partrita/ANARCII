@@ -27,7 +27,7 @@ def renumber_pdb_with_anarcii(
     out_name = file_path.replace(".pdb", "_anarcii.pdb")
     try:
         sequences = {}
-        with open(file_path, "r") as pdb_file:
+        with open(file_path) as pdb_file:
             for line in pdb_file:
                 if line[:6].strip() in ATOM_RECORDS:
                     chain_id = line[21:22].strip()
@@ -143,7 +143,7 @@ def renumber_pdb_with_anarcii(
                             renumbering_scheme[sequence_info[i][0]] = (last + i4, " ")
                             i4 += 1
 
-        with open(file_path, "r") as infile, open(out_name, "w") as outfile:
+        with open(file_path) as infile, open(out_name, "w") as outfile:
             for line in infile:
                 if line[:6].strip() in ATOM_RECORDS:
                     chain_id = line[21:22].strip()

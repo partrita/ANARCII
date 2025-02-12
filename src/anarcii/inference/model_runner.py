@@ -130,9 +130,11 @@ class ModelRunner:
                     & (max_input != sos_token)
                 )
 
-                # Find the first occurrence of `True` (eos_token) along the last dimension (trg_len)
+                # Find the first occurrence of `True` (eos_token) along the last
+                # dimension (trg_len)
                 eos_positions = max_input == eos_token
-                # Get the indices of the first occurrence of True along dimension 1 (trg_len), for each batch
+                # Get the indices of the first occurrence of True along dimension 1
+                # (trg_len), for each batch
                 first_eos_positions = torch.argmax(eos_positions.to(torch.int64), dim=1)
                 # Check if no EOS token is found for each batch
                 no_eos_found = ~(
@@ -144,14 +146,19 @@ class ModelRunner:
                 )
 
                 # New code plan: Preallocte to numpy array.
-                # Place at designated positions in the numpy array >>> Process an entire output string, read from a text file.
+                # Place at designated positions in the numpy array >>> Process an entire
+                # output string, read from a text file.
                 for batch_no in range(batch_size):
                     num += 1
                     error_msg = None
 
                     # # Ensure the score is calculated for numbered positions only.
                     # eos_positions = (max_input[batch_no] == eos_token).nonzero()
-                    # eos_position = eos_positions[0, 1] if eos_positions.size(0) > 0 else trg_len - 1
+                    # eos_position = (
+                    #     eos_positions[0, 1]
+                    #     if eos_positions.size(0) > 0
+                    #     else trg_len - 1
+                    # )
 
                     # mask = (max_input[batch_no, :eos_position] != skip_token) & \
                     #     (max_input[batch_no, :eos_position] != x_token) & \
@@ -264,8 +271,10 @@ class ModelRunner:
 
                             if not end_index:
                                 end_index = eos_position - 3
-                                # eos_position - 1: Moves to the token before <EOS>, excluding the <EOS> marker itself.
-                                # Subtracting an additional 1 for SOS and 1 for CLS: Adjusts further to skip over these two tokens.
+                                # eos_position - 1: Moves to the token before <EOS>,
+                                # excluding the <EOS> marker itself.
+                                # Subtracting an additional 1 for SOS and 1 for CLS:
+                                # Adjusts further to skip over these two tokens.
 
                             # Backfill >>>>
                             try:
@@ -276,18 +285,19 @@ class ModelRunner:
                                 # be a string, like an EOS or an X token.
                                 first_num = 1
 
-                            # Should not do this before 10 in case of failure to identify the gap.
+                            # Should not do this before 10 in case of failure to
+                            # identify the gap.
                             if (
                                 first_num > 1
                                 and first_num < 9
                                 and len(backfill_seqs) > 0
                             ):
                                 # This creates a list from 1 to first_num - 1
-                                vals = [x for x in range(1, first_num)]
+                                vals = list(range(1, first_num))
                                 # the problem here is if there is a lot of junk...
                                 vals = vals[-len(backfill_seqs) :]
                                 nums = [(i, " ") for i in vals] + nums
-                                seqs = [j for j in backfill_seqs[-len(vals) :]] + seqs
+                                seqs = list(backfill_seqs[-len(vals) :]) + seqs
 
                                 # Adjust the start index for the backfill
                                 start_index = start_index - len(backfill_seqs)
@@ -344,7 +354,8 @@ class ModelRunner:
                                     "score": round(normalized_score, 3),
                                     "query_start": None,
                                     "query_end": None,
-                                    "error": f"Could not apply numbering: {captured_error}",
+                                    "error": "Could not apply numbering: "
+                                    f"{captured_error}",
                                 }
                             )
 

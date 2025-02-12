@@ -30,7 +30,8 @@ class Anarcii:
         self,
         seq_type: str = "antibody",
         mode: str = "accuracy",
-        scfv_or_concatenated_chains: bool = False,  # For use with SCFVs or artificial constructs
+        # For use with SCFVs or artificial constructs:
+        scfv_or_concatenated_chains: bool = False,
         batch_size: int = 8,
         cpu: bool = False,
         ncpu: int = -1,
@@ -65,10 +66,12 @@ class Anarcii:
         self.print_initial_configuration()
 
         # # shark model
-        # self.shark_model = ModelRunner("shark",
-        #                             self.mode, self.batch_size, self.device, self.verbose)
-        # self.shark_window = WindowFinder("shark",
-        #                               self.mode, self.batch_size, self.device, self.scfv)
+        # self.shark_model = ModelRunner(
+        #     "shark", self.mode, self.batch_size, self.device, self.verbose
+        # )
+        # self.shark_window = WindowFinder(
+        #     "shark", self.mode, self.batch_size, self.device, self.scfv
+        # )
         # Antibody model
         self.ig_model = ModelRunner("antibody", 
                                     self.mode, self.batch_size, self.device, self.verbose)
@@ -252,7 +255,8 @@ class Anarcii:
 
         else:
             print(
-                "Input is not a list of sequences, nor a valid path to a fasta file (must end in .fa or .fasta), nor a pdb file (.pdb)."
+                "Input is not a list of sequences, nor a valid path to a fasta file "
+                "(must end in .fa or .fasta), nor a pdb file (.pdb)."
             )
             return []
 
@@ -268,7 +272,8 @@ class Anarcii:
                 print(f"Numbered {num_seqs} seqs in {runtime} mins. \n")
 
             print(
-                f"Output written to {self.text_}. Convert to csv or text with: model.to_csv(filepath) or model.to_text(filepath) "
+                f"Output written to {self.text_}. Convert to csv or text with: "
+                "model.to_csv(filepath) or model.to_text(filepath)"
             )
 
             return numbered_seqs
@@ -278,9 +283,9 @@ class Anarcii:
             sequences = SequenceProcessor(dict_of_seqs, model, window_model, self.verbose, self.scfv)
             processed_seqs = sequences.process_sequences()
 
-            # ==============================================================================
+            # ==========================================================================
             numbered_seqs = model(processed_seqs)
-            # ==============================================================================
+            # ==========================================================================
 
             end = time.time()
             runtime = round((end - begin) / 60, 2)

@@ -6,7 +6,8 @@ def convert_output(ls, format, verbose):
         if verbose:
             print(
                 "Converting to legacy format. Three separate lists. \n",
-                "A list of numberings, a list of all alignment details (contains, id, chain and score), and an empty list for hit tables. \n",
+                "A list of numberings, a list of all alignment details (contains, id, "
+                "chain and score), and an empty list for hit tables. \n",
             )
 
         numbering, alignment_details, hit_tables = [], [], []

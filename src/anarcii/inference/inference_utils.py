@@ -81,11 +81,7 @@ def dataloader(batch_size, ls):
 
 
 def build_inward_list(length, start_num, end_num):
-    cdrs = (
-        [x for x in range(27, 38)]
-        + [x for x in range(56, 65)]
-        + [x for x in range(105, 117)]
-    )
+    cdrs = list(range(27, 38)) + list(range(56, 65)) + list(range(105, 117))
 
     result = []
     if int(start_num) in cdrs:

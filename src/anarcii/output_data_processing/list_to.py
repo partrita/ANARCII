@@ -1,6 +1,7 @@
-import re
-import pandas as pd
 import json
+import re
+
+import pandas as pd
 
 
 def write_csv(ls, filename=None):

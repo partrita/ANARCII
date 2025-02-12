@@ -14,7 +14,7 @@ def pick_window(list_of_seqs, model):
     ls = []
 
     for seq in list_of_seqs:
-        bookend_seq = [aa.start] + [s for s in seq] + [aa.end]
+        bookend_seq = [aa.start] + list(seq) + [aa.end]
         try:
             tokenised_seq = torch.from_numpy(aa.encode(bookend_seq))
             ls.append(tokenised_seq)
@@ -32,7 +32,7 @@ def find_scfvs(list_of_seqs, model):
     ls = []
 
     for seq in list_of_seqs:
-        bookend_seq = [aa.start] + [s for s in seq] + [aa.end]
+        bookend_seq = [aa.start] + list(seq) + [aa.end]
         try:
             tokenised_seq = torch.from_numpy(aa.encode(bookend_seq))
             ls.append(tokenised_seq)

@@ -16,8 +16,8 @@ def scheme_specifics(regions, scheme, chain, chain_type):
 
 def get_cdr3_annotations(length, scheme="imgt", chain_type=""):
     """
-    Given a length of a cdr3 give back a list of the annotations that should be applied to the sequence.
-    This function should be depreciated - Why?
+    Given a length of a cdr3 give back a list of the annotations that should be applied
+    to the sequence. This function should be depreciated - Why?
     """
     az = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     za = "ZYXWVUTSRQPONMLKJIHGFEDCBA"
@@ -107,16 +107,10 @@ def chothia_heavy(regions):
     insertions = len([1 for _ in regions[0] if _[0][1] != " "])
     # We will place all insertion in this region at Chothia position 6.
     if insertions:
-        start = regions[
-            0
-        ][
-            0
-        ][
-            0
-        ][
-            0
-        ]  # The starting Chothia number as found by the HMM (could easily start from 2 for example)
-        # I have a feeling this may be a source of a bug in very unusual cases. Can't break for now. Will catch mistakes in a validate function.
+        # The starting Chothia number as found by the HMM (could easily start from 2 for
+        # example) I have a feeling this may be a source of a bug in very unusual cases.
+        # Can't break for now. Will catch mistakes in a validate function.
+        start = regions[0][0][0][0]
         length = len(regions[0])
         annotations = (
             [(_, " ") for _ in range(start, 7)]
@@ -179,16 +173,10 @@ def kabat_heavy(regions):
     insertions = len([1 for _ in regions[0] if _[0][1] != " "])
     # We will place all insertion in this region at Kabat position 6.
     if insertions:
-        start = regions[
-            0
-        ][
-            0
-        ][
-            0
-        ][
-            0
-        ]  # The starting Kabat number as found by the HMM (could easily start from 2 for example)
-        # I have a feeling this may be a source of a bug in very unusual cases. Can't break for now. Will catch mistakes in a validate function.
+        # The starting Kabat number as found by the HMM (could easily start from 2 for
+        # example) I have a feeling this may be a source of a bug in very unusual cases.
+        # Can't break for now. Will catch mistakes in a validate function.
+        start = regions[0][0][0][0]
         length = len(regions[0])
         annotations = (
             [(_, " ") for _ in range(start, 7)]
@@ -240,16 +228,10 @@ def martin_heavy(regions):
     insertions = len([1 for _ in regions[0] if _[0][1] != " "])
     # We will place all insertion in this region at Chothia position 8.
     if insertions:
-        start = regions[
-            0
-        ][
-            0
-        ][
-            0
-        ][
-            0
-        ]  # The starting Chothia number as found by the HMM (could easily start from 2 for example)
-        # I have a feeling this may be a source of a bug in very unusual cases. Can't break for now. Will catch mistakes in a validate function.
+        # The starting Chothia number as found by the HMM (could easily start from 2 for
+        # example). I have a feeling this may be a source of a bug in very unusual
+        # cases. Can't break for now. Will catch mistakes in a validate function.
+        start = regions[0][0][0][0]
         length = len(regions[0])
         annotations = (
             [(_, " ") for _ in range(start, 9)]
@@ -295,9 +277,9 @@ def martin_heavy(regions):
     regions[4] = [(annotations[i], regions[4][i][1]) for i in range(length)]
 
     # FW3
-    # Place all insertions on 72 explicitly.
-    # This is in contrast to Chothia implementation where 3 insertions are on 82 and then further insertions are placed by the  alignment
-    # Gaps are placed according to the alignment...
+    # Place all insertions on 72 explicitly. This is in contrast to Chothia
+    # implementation where 3 insertions are on 82 and then further insertions are placed
+    # by the  alignment Gaps are placed according to the alignment...
     length = len(regions[5])
     insertions = max(length - 35, 0)
     if insertions > 0:  # Insertions on 72
@@ -359,7 +341,9 @@ def chothia_light(regions):
             + [(53, " "), (54, " ")]
         )
         regions[3] = [(annotations[i], regions[3][i][1]) for i in range(length)]
-    else:  # How to gap L2 in Chothia/Kabat/Martin is unclear so we let the alignment do it.
+    else:
+        # How to gap L2 in Chothia/Kabat/Martin is unclear so we let the alignment do
+        # it.
         regions[3] = regions[3]
 
     # FW3
@@ -426,7 +410,9 @@ def kabat_light(regions):
             + [(53, " "), (54, " ")]
         )
         regions[3] = [(annotations[i], regions[3][i][1]) for i in range(length)]
-    else:  # How to gap L2 in Chothia/Kabat/Martin is unclear so we let the alignment do it.
+    else:
+        # How to gap L2 in Chothia/Kabat/Martin is unclear so we let the alignment do
+        # it.
         regions[3] = regions[3]
 
     # CDR3
@@ -442,9 +428,10 @@ def kabat_light(regions):
 
 
 def martin_light(regions):
-    # The Martin and Chothia specification for light chains are very similar. Martin is more explicit in the location of indels
-    # but unlike the heavy chain these are additional instead of changes to the Chothia scheme. Thus, Chothia light is implemented
-    # as martin light.
+    # The Martin and Chothia specification for light chains are very similar. Martin is
+    # more explicit in the location of indels but unlike the heavy chain these are
+    # additional instead of changes to the Chothia scheme. Thus, Chothia light is
+    # implemented as martin light.
     return chothia_light(regions)
 
 
@@ -476,14 +463,15 @@ def aho(regions, chain_type):
     J. 107-138 inclusive gaps on 123 symetrically.
     K. 139-149 inclusive.
 
-    """
+    """  # noqa: E501
 
     ##################################
     # Move the indel in fw 1 onto 8  #
     ##################################
     # Place indels on 8
-    # Find the first recognised residue and change the expected length of the stretch given the starting point.
-    # This prevents n terminal deletions being placed at 8 incorrectly.
+    # Find the first recognised residue and change the expected length of the stretch
+    # given the starting point. This prevents n terminal deletions being placed at 8
+    # incorrectly.
     length = len(regions[1])
     if length > 0:
         start = regions[1][0][0][0]
@@ -505,13 +493,14 @@ def aho(regions, chain_type):
     # CDR 1 # - divided in two parts in the Aho scheme.
     ######### - gaps at 28 depending on the chain type.
 
-    # "VH domains, as well as the majority of the VA domains, have a one-residue gap in position 28, VK and VB domains a two-residue
-    # gap in position 27 and 28."
+    # "VH domains, as well as the majority of the VA domains, have a one-residue gap in
+    # position 28, VK and VB domains a two-residue gap in position 27 and 28."
 
     # We use the link below as the reference for the scheme.
     # https://www.bioc.uzh.ch/plueckthun/antibody/Numbering/Alignment.html
 
-    # Some of the header lines in these images are offset by one (VH)! The gaps really are centered at 28 and 36
+    # Some of the header lines in these images are offset by one (VH)! The gaps really
+    # are centered at 28 and 36
     # https://www.bioc.uzh.ch/plueckthun/antibody/Sequences/Rearranged/PDB_VK.html
     # https://www.bioc.uzh.ch/plueckthun/antibody/Sequences/Rearranged/PDB_VL.html
     # https://www.bioc.uzh.ch/plueckthun/antibody/Sequences/Rearranged/PDB_VH.html
@@ -521,24 +510,30 @@ def aho(regions, chain_type):
     # https://www.bioc.uzh.ch/plueckthun/antibody/Sequences/Rearranged/PDB_VD.html
 
     # We gap the CDR1 in a heuristic way using the gaps.
-    # This means that CDR1 gapping will not always be correct. For example if one grafts a Kappa CDR1 loop onto a Lambda framework
-    # the gapping patter might now be incorrect.
-    # Not a fan of being so prescriptive.
+
+    # This means that CDR1 gapping will not always be correct. For example if one grafts
+    # a Kappa CDR1 loop onto a Lambda framework the gapping patter might now be
+    # incorrect. Not a fan of being so prescriptive.
 
     # The CDR1 region included here ranges from AHo 25 to AHo 42 inclusive
 
-    # The order in which the two loops are gapped is dependent on the chain type (see alignments in URLs above).
-    # Not all lengths are defined as not all lengths were crystallised in 2001 (or today). Where no example of the length was
-    # available the rule followed is to continue gapping the C terminal 'loop', then the N terminal 'loop', then 31 then the fw.
-    # In all cases I have commented where the gapping is undefined. Note that for alpha chains the gapping rules are inconsistent.
+    # The order in which the two loops are gapped is dependent on the chain type (see
+    # alignments in URLs above). Not all lengths are defined as not all lengths were
+    # crystallised in 2001 (or today). Where no example of the length was available the
+    # rule followed is to continue gapping the C terminal 'loop', then the N terminal
+    # 'loop', then 31 then the fw. In all cases I have commented where the gapping is
+    # undefined. Note that for alpha chains the gapping rules are inconsistent.
 
     _L = 28, 36, 35, 37, 34, 38, 27, 29, 33, 39, 32, 40, 26, 30, 25, 31, 41, 42
-    #                           |-> undefined by AHo. Gapping C terminal loop then N terminal then 31, then fw.
+    #                           |-> undefined by AHo. Gapping C terminal loop then N
+    #                               terminal then 31, then fw.
     _K = 28, 27, 36, 35, 37, 34, 38, 33, 39, 32, 40, 29, 26, 30, 25, 31, 41, 42
-    #                                 |-> undefined by AHo. Gapping C terminal loop then N terminal then fw.
+    #                                 |-> undefined by AHo. Gapping C terminal loop
+    #                                     then N terminal then fw.
     _H = 28, 36, 35, 37, 34, 38, 27, 33, 39, 32, 40, 29, 26, 30, 25, 31, 41, 42
-    #                        |-> undefined by AHo. Gapping C terminal loop then N terminal then fw.
-    #                            N.B. The header on the alignment image for PDB_VH is offset by 1!
+    #                        |-> undefined by AHo. Gapping C terminal loop then N
+    #                            terminal then fw. N.B. The header on the alignment
+    #                            image for PDB_VH is offset by 1!
 
     ordered_deletions = {"L": _L, "K": _K, "H": _H}
 
@@ -548,8 +543,8 @@ def aho(regions, chain_type):
         (i, " ") for i in sorted(ordered_deletions[chain_type][max(18 - length, 0) :])
     ]
 
-    # Insertions are not described in the AHo scheme but must be included as there is a significant number of CDRH1s that are
-    # longer than the number of positions.
+    # Insertions are not described in the AHo scheme but must be included as there is a
+    # significant number of CDRH1s that are longer than the number of positions.
     insertions = max(length - 18, 0)
     if insertions > 26:
         return []  # Too many insertions. Do not apply numbering.
@@ -571,13 +566,15 @@ def aho(regions, chain_type):
     # CDR 2 #
     #########
     # Gaps are placed symetically at 63.
-    # For VA a second gap is placed at 74 and 75 according to the text in the paper. However, all the reference sequences show a
-    # gap at 73 and 74 see:
+    # For VA a second gap is placed at 74 and 75 according to the text in the paper.
+    # However, all the reference sequences show a gap at 73 and 74 see:
     #      https://www.bioc.uzh.ch/plueckthun/antibody/Sequences/Rearranged/PDB_VA.html
     # and
     #      https://www.bioc.uzh.ch/plueckthun/antibody/Numbering/Alignment.html
-    # Either I am mis-interpreting the text in the paper or there is something a little inconsistent here...
-    # Given that *all* the numbered examples show the VA gap at 73 and 74 on the AAAAA website I have decided to implement this.
+    # Either I am mis-interpreting the text in the paper or there is something a little
+    # inconsistent here...
+    # Given that *all* the numbered examples show the VA gap at 73 and 74 on the AAAAA
+    # website I have decided to implement this.
     #
 
     # This region describes 58 to 77 inclusive
@@ -651,7 +648,8 @@ def aho(regions, chain_type):
     #########
     # CDR 3 #
     #########
-    # Deletions on 123. >>> Point of the Aho scheme is that they have accounted for all possible positions.
+    # Deletions on 123. >>> Point of the Aho scheme is that they have accounted for all
+    # possible positions.
     # Assumption is that no more insertions will occur....
     # We'll put insertions on 123 linearly.(i.e.ABCDEF...) if they ever do.
 

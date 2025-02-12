@@ -105,7 +105,17 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
 
         # ### Debug only ###
         # if NEW_NUM in [65, 66, 67, 68]:
-        #     print(letter, num, offset, "=", NEW_NUM, ">>>", num_conversion_state, state, insert_count)
+        #     print(
+        #         letter,
+        #         num,
+        #         offset,
+        #         "=",
+        #         NEW_NUM,
+        #         ">>>",
+        #         num_conversion_state,
+        #         state,
+        #         insert_count,
+        #     )
 
         last_num = NEW_NUM
         _letters[num_region_index].append(letter)
@@ -130,9 +140,13 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     # print(_regions)
 
     # ### Debug only ###
-    # for x, y in zip(_regions, _letters):
+    # for x, _y in zip(_regions, _letters):
     #     result = " ".join(
-    #         [(str(item[0][0]) + str(item[0][1]) + "-" + item[1]).replace(" ", "") for item in x])
+    #         [
+    #             (str(item[0][0]) + str(item[0][1]) + "-" + item[1]).replace(" ", "")
+    #             for item in x
+    #         ]
+    #     )
     #     print(result, "\n")
 
     # gap missing numbers

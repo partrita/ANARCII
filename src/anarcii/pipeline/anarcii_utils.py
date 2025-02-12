@@ -18,7 +18,7 @@ def count_lines_with_greater_than(file_path):
     if file_path.endswith(".gz"):
         open_file = gzip.open(file_path, "rt")  # Open gzipped file in text mode
     else:
-        open_file = open(file_path, "r")
+        open_file = open(file_path)
 
     with open_file as file:
         for line in file:
@@ -32,7 +32,8 @@ def split_sequence(name, sequence, verbose):
     if "-" in sequence or "/" in sequence or "\\" in sequence:
         if verbose:
             print(
-                f"- or / found in sequence {name}, assuming this is a paired sequence - splitting into parts."
+                f"- or / found in sequence {name}, "
+                "assuming this is a paired sequence - splitting into parts."
             )
         # Split the sequence on any of these delimiters
         split_parts = re.split(r"[-/\\]", sequence)
@@ -49,7 +50,7 @@ def read_fasta(file_path, verbose):
     if file_path.endswith(".gz"):
         open_file = gzip.open(file_path, "rt")  # Open gzipped file in text mode
     else:
-        open_file = open(file_path, "r")
+        open_file = open(file_path)
 
     with open_file as file:
         name = None
@@ -61,7 +62,9 @@ def read_fasta(file_path, verbose):
                     if "-" in seq or "/" in seq or "\\" in seq:
                         if verbose:
                             print(
-                                f"- or / found in sequence {name}, assuming this is a paired sequence - splitting into parts."
+                                f"- or / found in sequence {name}, "
+                                "assuming this is a paired sequence - "
+                                "splitting into parts."
                             )
                         split_parts = re.split(r"[-/\\]", seq)
                         for i, part in enumerate(split_parts, start=1):
@@ -77,7 +80,8 @@ def read_fasta(file_path, verbose):
             if "-" in seq or "/" in seq or "\\" in seq:
                 if verbose:
                     print(
-                        f"-/\\ found in sequence {name}, assuming this is a paired sequence - splitting into parts."
+                        f"-/\\ found in sequence {name}, "
+                        "assuming this is a paired sequence - splitting into parts."
                     )
                 split_parts = re.split(r"[-/\\]", seq)
                 for i, part in enumerate(split_parts, start=1):
