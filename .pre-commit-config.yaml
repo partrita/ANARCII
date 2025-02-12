@@ -10,16 +10,16 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.6
     hooks:
-      - id: ruff-format
-        name: Format with Ruff
-        language: system
-        entry: ruff format --force-exclude
-        types: [python]
-        require_serial: true
-
       - id: ruff
         name: Lint with Ruff
         language: system
         entry: ruff check --force-exclude --fix
+        types: [python]
+        require_serial: true
+
+      - id: ruff-format
+        name: Format with Ruff
+        language: system
+        entry: ruff format --force-exclude
         types: [python]
         require_serial: true
