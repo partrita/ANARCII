@@ -1,5 +1,7 @@
+from anarcii.inference.inference_utils import alphabet
+
 from .scheme_specific_function import scheme_specifics
-from .schemes_constants import alphabet, schemes
+from .schemes_constants import schemes
 
 
 def gap_missing(numbering):

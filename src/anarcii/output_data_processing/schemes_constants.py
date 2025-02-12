@@ -2,9 +2,7 @@
 Extra functions missing from each application - need to understand and set after.
 """
 
-import string
-
-__all__ = ["schemes", "alphabet"]
+__all__ = ["schemes"]
 
 schemes = {
     "imgt": {
@@ -125,13 +123,3 @@ schemes = {
         "n_regions": 11,
     },
 }
-
-# All upper case letters, then all upper case letters doubled, then a space.
-alphabet = (
-    # All upper case letters.
-    list(string.ascii_uppercase)
-    # All upper case letters, doubled.
-    + [2 * letter for letter in string.ascii_uppercase]
-    # A space.
-    + [" "]
-)
