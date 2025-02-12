@@ -1,61 +1,17 @@
+import string
+
 import torch.nn.utils.rnn as rnn_utils
 from torch.utils.data import DataLoader
 
-alphabet = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "X",
-    "Y",
-    "Z",
-    "AA",
-    "BB",
-    "CC",
-    "DD",
-    "EE",
-    "FF",
-    "GG",
-    "HH",
-    "II",
-    "JJ",
-    "KK",
-    "LL",
-    "MM",
-    "NN",
-    "OO",
-    "PP",
-    "QQ",
-    "RR",
-    "SS",
-    "TT",
-    "UU",
-    "VV",
-    "WW",
-    "XX",
-    "YY",
-    "ZZ",
-    " ",
-]
+# All upper case letters, then all upper case letters doubled, then a space.
+alphabet = (
+    # All upper case letters.
+    list(string.ascii_uppercase)
+    # All upper case letters, doubled.
+    + [2 * letter for letter in string.ascii_uppercase]
+    # A space.
+    + [" "]
+)
 
 
 def floating_pad(list_of_lists, batch_size):
