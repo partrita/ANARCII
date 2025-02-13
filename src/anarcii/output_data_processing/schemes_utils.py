@@ -132,13 +132,8 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
 
     ##### Renumbering required for specific regions. #####
     ## >> Go to scheme_specific_function.py file >>>
-    scheme, *chain = scheme_name.split("_")
-    chain = chain[0] if chain else None
     _regions = scheme_specifics(
-        regions=_regions,
-        scheme=scheme,
-        chain=chain,
-        chain_type=chain_type,
+        regions=_regions, scheme_name=scheme_name, chain_type=chain_type
     )
 
     # print(_regions)
