@@ -341,6 +341,7 @@ class ModelRunner:
                                     "query_start": start_index,
                                     "query_end": end_index,
                                     "error": None,
+                                    "scheme": "imgt",
                                 }
                             )
 
@@ -356,6 +357,7 @@ class ModelRunner:
                                     "query_end": None,
                                     "error": "Could not apply numbering: "
                                     f"{captured_error}",
+                                    "scheme": "imgt",
                                 }
                             )
 

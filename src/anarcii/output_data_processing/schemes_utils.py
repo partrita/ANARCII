@@ -151,6 +151,8 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
 
     unpacked_regions = [x for y in _regions for x in y]
 
+    top_level_scheme_nm, *_ = scheme_name.split("_")
+
     return (
         gap_missing(unpacked_regions),
         {
@@ -159,6 +161,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
             "query_start": anarcii_numbered_seq[1]["query_start"],
             "query_end": anarcii_numbered_seq[1]["query_end"],
             "error": None,
+            "scheme": top_level_scheme_nm,
             "query_name": name,
         },
     )
