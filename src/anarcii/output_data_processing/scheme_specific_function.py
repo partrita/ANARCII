@@ -2,11 +2,11 @@
 from anarcii.inference.inference_utils import alphabet
 
 
-def scheme_specifics(regions, scheme, chain, chain_type):
-    construct_scheme = "_".join([scheme, chain]) if chain else scheme
-    function = function_dict[construct_scheme]
+def scheme_specifics(regions, scheme_name, chain_type):
+    function = function_dict[scheme_name]
 
     # The complexity of AHo means that it needs the exact chain type (H, K or L).
+    scheme, *_ = scheme_name.split("_")  # Remove the chain name suffix.
     if scheme == "aho":
         result = function(regions, chain_type)
     else:
