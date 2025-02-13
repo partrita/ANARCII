@@ -7,18 +7,14 @@ repos:
       - id: check-merge-conflict
       - id: end-of-file-fixer
 
-  - repo: local
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.6
     hooks:
       - id: ruff
-        name: lint with ruff
-        language: system
-        entry: ruff check --force-exclude --fix
-        types: [python]
-        require_serial: true
+        name: Lint with Ruff
+        args: [ --fix ]
+        types: [ python ]
 
       - id: ruff-format
-        name: format with ruff
-        language: system
-        entry: ruff format --force-exclude
-        types: [python]
-        require_serial: true
+        name: Format with Ruff
+        types: [ python ]
