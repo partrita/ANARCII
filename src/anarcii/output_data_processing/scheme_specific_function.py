@@ -3,6 +3,9 @@ from anarcii.inference.inference_utils import alphabet
 
 
 def scheme_specifics(regions, scheme_name, chain_type):
+    if scheme_name == "imgt":
+        return regions
+
     function = function_dict[scheme_name]
 
     # The complexity of AHo means that it needs the exact chain type (H, K or L).

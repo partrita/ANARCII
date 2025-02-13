@@ -24,7 +24,6 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     Works on one sequence at a time.
     """
     scheme = schemes[scheme_name]
-    # print(scheme_name)
 
     nums = anarcii_numbered_seq[0]
     name = anarcii_numbered_seq[1]["query_name"]
@@ -157,8 +156,8 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
         {
             "chain_type": chain_type,
             "score": score,
-            "query_start": None,
-            "query_end": None,
+            "query_start": anarcii_numbered_seq[1]["query_start"],
+            "query_end": anarcii_numbered_seq[1]["query_end"],
             "error": None,
             "query_name": name,
         },
