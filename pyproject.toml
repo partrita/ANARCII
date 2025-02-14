@@ -11,10 +11,7 @@ license-files = ["LICENCE"]
 authors = [
     { name = "Alexander Greenshields Watson", email = "opig@stats.ox.ac.uk" },
 ]
-dependencies = [
-    "numpy",
-    "torch",
-]
+dependencies = ["numpy", "torch"]
 
 [project.scripts]
 anarcii = "anarcii.cli:main"
@@ -26,12 +23,14 @@ path = "src/anarcii/__init__.py"
 src = ["src", "tests"]
 line-length = 88
 lint.select = [
-    "B",  # flake8-bugbear - https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
-    "C4", # flake8-comprehensions - https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
-    "S",  # flake8-bandit - https://docs.astral.sh/ruff/rules/#flake8-bandit-s
-    "E",  # pycodestyle errors - https://docs.astral.sh/ruff/rules/#error-e
-    "F",  # pyflakes rules - https://docs.astral.sh/ruff/rules/#pyflakes-f
-    "W",  # pycodestyle warnings - https://docs.astral.sh/ruff/rules/#warning-w
-    "I",  # isort - https://docs.astral.sh/ruff/rules/#isort-i
-    "UP", # pyupgrade - https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "B",   # flake8-bugbear - https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+    "BLE", # flake8-blind-except - https://docs.astral.sh/ruff/rules/#flake8-blind-except-ble
+    "C4",  # flake8-comprehensions - https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "FA",  # flake8-future-annotations - https://docs.astral.sh/ruff/rules/#flake8-future-annotations-fa
+    "S",   # flake8-bandit - https://docs.astral.sh/ruff/rules/#flake8-bandit-s
+    "E",   # pycodestyle errors - https://docs.astral.sh/ruff/rules/#error-e
+    "F",   # pyflakes rules - https://docs.astral.sh/ruff/rules/#pyflakes-f
+    "W",   # pycodestyle warnings - https://docs.astral.sh/ruff/rules/#warning-w
+    "I",   # isort - https://docs.astral.sh/ruff/rules/#isort-i
+    "UP",  # pyupgrade - https://docs.astral.sh/ruff/rules/#pyupgrade-up
 ]
