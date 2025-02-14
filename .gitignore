@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*example_dev*
+
 *gpu*.pt
 
 *.png

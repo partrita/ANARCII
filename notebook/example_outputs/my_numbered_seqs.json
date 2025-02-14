@@ -899,11 +899,12 @@
       ]
     ],
     {
-      "chain_type": "H",
-      "score": 27.856,
+      "chain_type": "K",
+      "score": 26.666,
       "query_start": 0,
       "query_end": 111,
       "error": null,
+      "scheme": "imgt",
       "query_name": "sp|P01629|KV2A4_MOUSE Ig kappa chain V-II region 2S1.3 OS=Mus musculus OX=10090 PE=1 SV=1"
     }
   ],
@@ -1807,11 +1808,12 @@
       ]
     ],
     {
-      "chain_type": "H",
-      "score": 27.742,
+      "chain_type": "K",
+      "score": 26.775,
       "query_start": 0,
       "query_end": 111,
       "error": null,
+      "scheme": "imgt",
       "query_name": "sp|P01630|KV2A6_MOUSE Ig kappa chain V-II region 7S34.1 OS=Mus musculus OX=10090 PE=1 SV=1"
     }
   ],
@@ -2715,11 +2717,12 @@
       ]
     ],
     {
-      "chain_type": "H",
-      "score": 28.454,
+      "chain_type": "K",
+      "score": 27.325,
       "query_start": 0,
       "query_end": 111,
       "error": null,
+      "scheme": "imgt",
       "query_name": "sp|P01631|KV2A7_MOUSE Ig kappa chain V-II region 26-10 OS=Mus musculus OX=10090 PE=1 SV=1"
     }
   ],
@@ -3623,11 +3626,12 @@
       ]
     ],
     {
-      "chain_type": "H",
-      "score": 26.705,
+      "chain_type": "K",
+      "score": 26.071,
       "query_start": 0,
       "query_end": 115,
       "error": null,
+      "scheme": "imgt",
       "query_name": "sp|P01691|KV10_RABIT Ig kappa chain V region 12F2 (Fragment) OS=Oryctolagus cuniculus OX=9986 PE=2 SV=1"
     }
   ]

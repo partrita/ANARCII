@@ -182,7 +182,7 @@ class ModelRunner:
                         error_msg = "Less than 50 non insertion residues numbered."
 
                     # This is the antibody cutoff - need a new one for TCRS
-                    if round(normalized_score, 3) < 12.0:
+                    if round(normalized_score, 3) < 13.5:
                         numbering.append(None)
 
                         alignment.append(
