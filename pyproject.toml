@@ -7,7 +7,7 @@ name = "anarcii"
 dynamic = ["version"]
 description = "A sequence numbering tool called ANARCII that..."
 readme = "README.md"
-license-file = "LICENCE"
+license-files = ["LICENCE"]
 authors = [
     { name = "Alexander Greenshields Watson", email = "opig@stats.ox.ac.uk" },
 ]
