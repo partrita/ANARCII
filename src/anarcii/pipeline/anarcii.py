@@ -239,6 +239,7 @@ class Anarcii:
             if len(dict_of_seqs) > max_seqs_len:
                 print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
                 keys = list(dict_of_seqs.keys())  # Convert dictionary keys to a list
+                num_seqs = len(keys)
 
                 num_chunks = (len(dict_of_seqs) // max_seqs_len) + 1
                 for i in range(num_chunks):
