@@ -145,10 +145,18 @@ class Anarcii:
                 print(f"Found {len(antibodies)} antibodies and {len(tcrs)} TCRs.")
 
             antis_out = self.number_with_type(antibodies, "antibody")
-            # Must now set to be true in order to append to the output file.
+            # If max length has been exceeded here (but not in the next chunk).
+            # You need to ensure that the TCR numberings are written to the same file.
+            # check status of self.max_len_exceed.
+            if self.max_len_exceed:
+                chunk_subsequent = True
+            else:
+                chunk_subsequent = False
+
+            # We need to stay in unknown mode and append to an output file.
             self.unknown = True
 
-            tcrs_out = self.number_with_type(tcrs, "tcr")
+            tcrs_out = self.number_with_type(tcrs, "tcr", chunk=chunk_subsequent)
             self.unknown = False  # Reset to false.
 
             self._last_numbered_output = join_mixed_types(
@@ -189,7 +197,7 @@ class Anarcii:
         print(f"Last output converted to {scheme}")
         return converted_seqs
 
-    def number_with_type(self, seqs, inner_type):
+    def number_with_type(self, seqs, inner_type, chunk=False):
         if inner_type == "shark":
             model = self.shark_model
             window_model = self.shark_window
@@ -240,8 +248,9 @@ class Anarcii:
                 print("Length of sequence list: ", len(dict_of_seqs))
 
             # If the list is huge - breakup into chunks of 1M.
-            if len(dict_of_seqs) > max_seqs_len:
+            if len(dict_of_seqs) > max_seqs_len or chunk:
                 print(f"\nMax # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
+
                 keys = list(dict_of_seqs.keys())  # Convert dictionary keys to a list
                 num_seqs = len(keys)
 
