@@ -144,6 +144,7 @@ class Anarcii:
                 print(f"Found {len(antibodies)} antibodies and {len(tcrs)} TCRs.")
 
             antis_out = self.number_with_type(antibodies, "antibody")
+
             tcrs_out = self.number_with_type(tcrs, "tcr")
 
             self._last_numbered_output = join_mixed_types(
@@ -237,12 +238,18 @@ class Anarcii:
             # If the list is huge - breakup into chunks of 1M.
             if len(dict_of_seqs) > max_seqs_len:
                 print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
+                keys = list(dict_of_seqs.keys())  # Convert dictionary keys to a list
+
                 num_chunks = (len(dict_of_seqs) // max_seqs_len) + 1
                 chunk_list = {}
                 for i in range(num_chunks):
-                    chunk_list[i] = dict_of_seqs[
-                        i * max_seqs_len : (i + 1) * max_seqs_len
-                    ]
+                    # Get the keys for the current chunk
+                    chunk_keys = keys[i * max_seqs_len : (i + 1) * max_seqs_len]
+
+                    # Create a dictionary for the current chunk
+                    # using dictionary comprehension
+                    chunk_list[i] = {k: dict_of_seqs[k] for k in chunk_keys}
+
                 self.max_len_exceed = True
 
         # Fasta file
