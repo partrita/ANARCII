@@ -5,6 +5,7 @@ def batch_process(ls, model, window_model, verbose, txt_file):
     counter = 1
     for chunk in ls:
         print(f"\nChunk: {counter} of {len(ls)}.")
+
         sequences = SequenceProcessor(chunk, model, window_model, verbose)
         processed_seqs = sequences.process_sequences()
 

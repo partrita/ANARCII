@@ -241,14 +241,10 @@ class Anarcii:
                 keys = list(dict_of_seqs.keys())  # Convert dictionary keys to a list
 
                 num_chunks = (len(dict_of_seqs) // max_seqs_len) + 1
-                chunk_list = {}
                 for i in range(num_chunks):
-                    # Get the keys for the current chunk
                     chunk_keys = keys[i * max_seqs_len : (i + 1) * max_seqs_len]
 
-                    # Create a dictionary for the current chunk
-                    # using dictionary comprehension
-                    chunk_list[i] = {k: dict_of_seqs[k] for k in chunk_keys}
+                    chunk_list.append({k: dict_of_seqs[k] for k in chunk_keys})
 
                 self.max_len_exceed = True
 
