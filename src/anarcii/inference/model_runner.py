@@ -348,6 +348,7 @@ class ModelRunner:
                         except Exception as e:
                             # Capture the error message from the exception
                             captured_error = str(e)
+                            # print(captured_error)
 
                             numbering.append(None)
                             alignment.append(

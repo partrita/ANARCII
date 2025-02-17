@@ -71,8 +71,9 @@ def write_text(ls, file_path):
             name = sublist[1]["query_name"]
             chain = sublist[1]["chain_type"]
             score = sublist[1]["score"]
+            error = sublist[1]["error"]
 
-            line = f"{name}, {chain}, {score}, {repr(nums)}\n"
+            line = f"{name}, {chain}, {score}, {repr(nums)}, {error}\n"
             file.write(line)
 
 
