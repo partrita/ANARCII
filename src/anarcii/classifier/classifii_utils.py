@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 
 
 def join_mixed_types(antibodies, tcrs, names):
-    print("joining types")
+    print("\nJoining types: TCR and Antibodies.")
 
     dict1 = {item[1]["query_name"]: item for item in antibodies}
     dict2 = {item[1]["query_name"]: item for item in tcrs}

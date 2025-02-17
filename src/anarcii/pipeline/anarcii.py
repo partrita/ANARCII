@@ -61,6 +61,7 @@ class Anarcii:
         self.output_format = output_format.lower()
         self.scfv = scfv_or_concatenated_chains
         self.debug_input = debug_input
+        self.unknown = False
 
         # Attach methods
         self.print_initial_configuration = print_initial_configuration.__get__(self)
@@ -144,8 +145,11 @@ class Anarcii:
                 print(f"Found {len(antibodies)} antibodies and {len(tcrs)} TCRs.")
 
             antis_out = self.number_with_type(antibodies, "antibody")
+            # Must now set to be true in order to append to the output file.
+            self.unknown = True
 
             tcrs_out = self.number_with_type(tcrs, "tcr")
+            self.unknown = False  # Reset to false.
 
             self._last_numbered_output = join_mixed_types(
                 antis_out, tcrs_out, list_of_names
@@ -202,7 +206,7 @@ class Anarcii:
         self.max_len_exceed = False
 
         # clear the output file
-        if hasattr(self, "text_") and os.path.exists(self.text_):
+        if hasattr(self, "text_") and os.path.exists(self.text_) and not self.unknown:
             os.remove(self.text_)
 
         chunk_list = []
@@ -237,14 +241,13 @@ class Anarcii:
 
             # If the list is huge - breakup into chunks of 1M.
             if len(dict_of_seqs) > max_seqs_len:
-                print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
+                print(f"\nMax # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
                 keys = list(dict_of_seqs.keys())  # Convert dictionary keys to a list
                 num_seqs = len(keys)
 
                 num_chunks = (len(dict_of_seqs) // max_seqs_len) + 1
                 for i in range(num_chunks):
                     chunk_keys = keys[i * max_seqs_len : (i + 1) * max_seqs_len]
-
                     chunk_list.append({k: dict_of_seqs[k] for k in chunk_keys})
 
                 self.max_len_exceed = True
@@ -306,7 +309,7 @@ class Anarcii:
                 print(f"Numbered {num_seqs} seqs in {runtime} mins. \n")
 
             print(
-                f"Output written to {self.text_}. Convert to csv or text with: "
+                f"\nOutput written to {self.text_}. Convert to csv or text with: "
                 "model.to_csv(filepath) or model.to_text(filepath)"
             )
 

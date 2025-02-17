@@ -92,38 +92,6 @@ def read_fasta(file_path, verbose):
     return sequences
 
 
-def pick_type(antibody_ls, tcrs_ls):
-    ls = list(zip(antibody_ls, tcrs_ls))
-
-    final_seqs = []
-
-    for pair in ls:
-        antibody = pair[0]
-        antibody_conserved_count = check_conserved(antibody[0])
-        antibody_score = antibody[1]["score"]
-
-        tcr = pair[1]
-        tcr_conserved_count = check_conserved(tcr[0])
-        tcr_score = tcr[1]["score"]
-
-        if antibody_conserved_count > tcr_conserved_count:
-            final_seqs.append(antibody)
-
-        elif antibody_conserved_count < tcr_conserved_count:
-            final_seqs.append(tcr)
-
-        elif antibody_conserved_count == tcr_conserved_count:
-            if antibody_score > tcr_score:
-                final_seqs.append(antibody)
-            elif antibody_score < tcr_score:
-                final_seqs.append(tcr)
-            elif len(antibody[0]) > len(tcr[0]):
-                final_seqs.append(antibody)
-            elif len(antibody[0]) < len(tcr[0]):
-                final_seqs.append(tcr)
-    return final_seqs
-
-
 def check_conserved(nums):
     num = 0
     for tup in nums:
