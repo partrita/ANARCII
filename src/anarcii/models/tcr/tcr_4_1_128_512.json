@@ -4,8 +4,8 @@
     "SRC_PAD_IDX": 0,
     "TRG_PAD_IDX": 0,
 
-    "INPUT_DIM": 34,
-    "OUTPUT_DIM": 169,
+    "INPUT_DIM": 25,
+    "OUTPUT_DIM": 137,
     "HID_DIM": 128,
     "LAYERS": 1,
     

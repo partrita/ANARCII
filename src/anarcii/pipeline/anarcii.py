@@ -92,12 +92,12 @@ class Anarcii:
         )
 
         # TCR model
-        # self.tcr_model = ModelRunner(
-        #     "tcr", self.mode, self.batch_size, self.device, self.verbose
-        # )
-        # self.tcr_window = WindowFinder(
-        #     "tcr", self.mode, self.batch_size, self.device, self.scfv
-        # )
+        self.tcr_model = ModelRunner(
+            "tcr", self.mode, self.batch_size, self.device, self.verbose
+        )
+        self.tcr_window = WindowFinder(
+            "tcr", self.mode, self.batch_size, self.device, self.scfv
+        )
 
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (
@@ -144,7 +144,7 @@ class Anarcii:
                 print(f"Found {len(antibodies)} antibodies and {len(tcrs)} TCRs.")
 
             antis_out = self.number_with_type(antibodies, "antibody")
-            tcrs_out = self.number_with_type(tcrs, "antibody")
+            tcrs_out = self.number_with_type(tcrs, "tcr")
 
             self._last_numbered_output = join_mixed_types(
                 antis_out, tcrs_out, list_of_names

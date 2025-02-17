@@ -40,11 +40,7 @@ class Tokenizer:
                 self.start,
                 self.end,
                 self.skip,
-                *([x.upper() for x in "aBcdefghiJklmnopqrstUvwXyZ"]),
-                "A",
-                "B",
-                "G",
-                "D",
+                *([x.upper() for x in "acdefghiklmnpqrstvwXy"]),
             ]
 
         elif self.vocab_type == "number_tcr":
@@ -53,7 +49,7 @@ class Tokenizer:
                 self.start,
                 self.end,
                 self.skip,
-                *([str(x) for x in range(1, 161)]),
+                *([str(x) for x in range(1, 129)]),
                 "X",
                 "A",
                 "B",
