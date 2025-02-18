@@ -32,7 +32,7 @@ def get_available_cpus():
         process = psutil.Process()
         cpu_affinity = process.cpu_affinity()
         return len(cpu_affinity)
-    except Exception:
+    except Exception:  # noqa: BLE001
         if "SLURM_CPUS_PER_TASK" in os.environ:
             return int(os.environ["SLURM_CPUS_PER_TASK"])
         elif "PBS_NP" in os.environ:
