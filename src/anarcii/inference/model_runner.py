@@ -345,7 +345,7 @@ class ModelRunner:
                                 }
                             )
 
-                        except Exception as e:
+                        except ValueError as e:
                             # Capture the error message from the exception
                             captured_error = str(e)
 
