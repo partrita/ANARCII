@@ -162,6 +162,6 @@ def renumber_pdb_with_anarcii(
 
                 outfile.write(line)
 
-    except Exception as e:
+    except OSError as e:
         print(f"Failed to process {file_path}: {e}")
         print(f"Error occurred in processing chain: {chain_id}")
