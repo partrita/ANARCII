@@ -205,9 +205,71 @@ class ModelRunner:
 
                         eos_position = eos_position.item()
 
+                        # Need to implement forward fill code being conservative...
+                        # How can you do this if you using an EOS?
+                        ### DEBUG SESSION
+                        # Work out residues remaining after the EOS and print them off.
+                        if src_tokens[batch_no, eos_position - 1] != "<EOS>":
+                            # model EOS and seq EOS are not the same.
+                            # Build a forward fill from 120 onwards.
+                            print("\n")
+                            print(
+                                "EOS-1: ",
+                                pred_tokens[batch_no, eos_position - 2],
+                                src_tokens[batch_no, eos_position - 3],
+                            )
+                            print(
+                                "EOS-2: ",
+                                pred_tokens[batch_no, eos_position - 1],
+                                src_tokens[batch_no, eos_position - 2],
+                            )
+                            print(
+                                "EOS  : ",
+                                pred_tokens[batch_no, eos_position + 0],
+                                src_tokens[batch_no, eos_position - 1],
+                            )
+                            print(
+                                "EOS+1: ",
+                                pred_tokens[batch_no, eos_position + 1],
+                                src_tokens[batch_no, eos_position + 0],
+                            )
+                            print(
+                                "EOS+2: ",
+                                pred_tokens[batch_no, eos_position + 2],
+                                src_tokens[batch_no, eos_position + 1],
+                            )
+                        else:  # Model has done just fine.
+                            # Son, you gone be alright...
+                            print("\n")
+                            print(
+                                "EOS-1: ",
+                                pred_tokens[batch_no, eos_position - 2],
+                                src_tokens[batch_no, eos_position - 3],
+                            )
+                            print(
+                                "EOS-2: ",
+                                pred_tokens[batch_no, eos_position - 1],
+                                src_tokens[batch_no, eos_position - 2],
+                            )
+                            print(
+                                "EOS  : ",
+                                pred_tokens[batch_no, eos_position + 0],
+                                src_tokens[batch_no, eos_position - 1],
+                            )
+
+                        # If the model has confidently called the end of the CDR3 -
+                        # this being position 118 and 119.
+                        # Then fill the remaining resides to 128 for a heavy
+                        # and 127 for a light/TCRs.
+                        # Chain "chain_type": str(pred_tokens[batch_no, 1]),
+
                         try:
                             for seq_position in range(2, eos_position):
+                                # The if statement below may be redundant...
                                 if src_tokens[batch_no, seq_position - 1] == "<EOS>":
+                                    # The end index position in the sequence
+                                    # -3 is to accomodate the shifted register due to -
+                                    #  the <SOS>, chain token and python zero
                                     end_index = seq_position - 3
                                     break
 
