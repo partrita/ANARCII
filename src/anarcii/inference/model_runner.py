@@ -150,6 +150,7 @@ class ModelRunner:
 
                 # Autoregressive inference loop
                 for batch_no in range(batch_size):
+                    error_occurred = False
                     num += 1
                     error_msg = None
 
@@ -166,6 +167,7 @@ class ModelRunner:
                         normalized_score = 0.0
                         error_msg = "Less than 50 non insertion residues numbered."
 
+                    #### MAGIC NUMBER ####
                     # This is the antibody cutoff - need a new one for TCRS
                     if round(normalized_score, 3) < 13.5:
                         numbering.append(None)
@@ -181,99 +183,54 @@ class ModelRunner:
                         )
 
                     else:
-                        seqs, nums = [], []
-                        backfill_seqs = []
+                        residues, nums = [], []
+                        backfill_residues = []
                         started = False
                         in_x_run, x_count = False, 0
                         start_index = None
                         end_index = None
 
-                        src_eos_position = src_eos_positions[batch_no].item() - 1
+                        # SRC is missing chain token + 1
+                        src_eos_position = src_eos_positions[batch_no].item() + 1
                         eos_position = eos_position.item()
 
-                        # ANARCII sometimes doesn't continue numbering to end of seq
-                        # Work out residues remaining after the EOS
-                        # Decide forward fill to 127 (KL) /128 (H) needs to occur
-                        if src_tokens[batch_no, eos_position - 1] != "<EOS>":
-                            print(
-                                "\n",
-                                "Source EOS: ",
-                                src_eos_position,
-                                "Predicted EOS: ",
-                                eos_position,
-                            )
+                        for seq_position in range(2, eos_position):
+                            # The if statement below may be redundant...
+                            if src_tokens[batch_no, seq_position - 1] == "<EOS>":
+                                # The end index position in the sequence
+                                # -3 is to accomodate the shifted register due to -
+                                #  the <SOS>, chain token and python zero
+                                end_index = seq_position - 3
+                                break
 
-                            # How far is EOS from 128?
-                            missing_numbers = 128 - int(
-                                pred_tokens[batch_no, eos_position - 1]
-                            )
-                            print(missing_numbers)
+                            elif (
+                                pred_tokens[batch_no, seq_position] == "<SKIP>"
+                                and started
+                            ):  # Break if hitting a skip post at the end.
+                                end_index = seq_position - 3
+                                break
 
-                            # How much is left of the source to number?
-                            seq_remainder = int(src_eos_position) - int(eos_position)
-                            print(seq_remainder)
-
-                            for i in range(
-                                eos_position - 3,
-                                eos_position + min(missing_numbers, seq_remainder),
-                            ):
-                                print(
-                                    f"Pos {i}: ",
-                                    "\t",
-                                    src_tokens[batch_no, i + 0],
-                                    "\t",
-                                    pred_tokens[batch_no, i + 1],
+                            elif (
+                                pred_tokens[batch_no, seq_position] == "<SKIP>"
+                                and not started
+                            ):  # Append as backfill up to the start.
+                                backfill_residues.append(
+                                    str(src_tokens[batch_no, seq_position - 1])
                                 )
+                                continue
 
-                        else:  # Model has done just fine. Pred-EOS matches SRC-EOS
-                            print(
-                                "\n",
-                                "Source EOS: ",
-                                src_eos_position,
-                                "Predicted EOS: ",
-                                eos_position,
-                            )
+                            elif pred_tokens[batch_no, seq_position] == "X":
+                                x_count += 1
+                                in_x_run = True
 
-                        # If the model has confidently called the end of the CDR3 -
-                        # this being position 118 and 119.
-                        # Then fill the remaining resides to 128 for a heavy
-                        # and 127 for a light/TCRs.
-                        # Chain "chain_type": str(pred_tokens[batch_no, 1]),
-
-                        try:
-                            for seq_position in range(2, eos_position):
-                                # The if statement below may be redundant...
-                                if src_tokens[batch_no, seq_position - 1] == "<EOS>":
-                                    # The end index position in the sequence
-                                    # -3 is to accomodate the shifted register due to -
-                                    #  the <SOS>, chain token and python zero
-                                    end_index = seq_position - 3
-                                    break
-
-                                elif (
-                                    pred_tokens[batch_no, seq_position] == "<SKIP>"
-                                    and started
-                                ):  # Break if hitting a skip post at the end.
-                                    end_index = seq_position - 3
-                                    break
-
-                                elif (
-                                    pred_tokens[batch_no, seq_position] == "<SKIP>"
-                                    and not started
-                                ):  # Append as backfill up to the start.
-                                    backfill_seqs.append(
-                                        str(src_tokens[batch_no, seq_position - 1])
-                                    )
-                                    continue
-
-                                elif pred_tokens[batch_no, seq_position] == "X":
-                                    x_count += 1
-                                    in_x_run = True
-
-                                elif (
-                                    pred_tokens[batch_no, seq_position].isdigit()
-                                    and in_x_run
-                                ):
+                            elif (
+                                pred_tokens[batch_no, seq_position].isdigit()
+                                and in_x_run
+                            ):
+                                # This code breaks if we have a junk seq that
+                                # has predicted runs of X (insertions)
+                                # that are not bookended with integers
+                                try:
                                     construction = build_inward_list(
                                         length=x_count,
                                         # number before X began
@@ -298,107 +255,199 @@ class ModelRunner:
                                     )
                                     in_x_run = False
                                     x_count = 0
-                                else:
+
+                                except ValueError as e:
+                                    # Capture the error message from the exception
+                                    captured_error = str(e)
+                                    numbering.append(None)
+                                    alignment.append(
+                                        {
+                                            "chain_type": "F",
+                                            "score": round(normalized_score, 3),
+                                            "query_start": None,
+                                            "query_end": None,
+                                            "error": "Could not apply numbering: "
+                                            f"{captured_error}",
+                                            "scheme": "imgt",
+                                        }
+                                    )
+                                    error_occurred = True
+                                    break
+
+                            else:
+                                try:
                                     nums.append(
                                         (int(pred_tokens[batch_no, seq_position]), " ")
                                     )
+                                except ValueError as e:
+                                    # Capture the error message from the exception
+                                    captured_error = str(e)
+                                    numbering.append(None)
+                                    alignment.append(
+                                        {
+                                            "chain_type": "F",
+                                            "score": round(normalized_score, 3),
+                                            "query_start": None,
+                                            "query_end": None,
+                                            "error": "Could not apply numbering: "
+                                            f"{captured_error}",
+                                            "scheme": "imgt",
+                                        }
+                                    )
+                                    error_occurred = True
+                                    break
 
-                                seqs.append(str(src_tokens[batch_no, seq_position - 1]))
-                                if not started:
-                                    start_index = seq_position - 2
-                                started = True
+                            residues.append(str(src_tokens[batch_no, seq_position - 1]))
 
-                            if not end_index:
-                                end_index = eos_position - 3
-                                # eos_position - 1: Moves to the token before <EOS>,
-                                # excluding the <EOS> marker itself.
-                                # Subtracting an additional 1 for SOS and 1 for CLS:
-                                # Adjusts further to skip over these two tokens.
+                        if error_occurred:
+                            continue
 
-                            # Backfill >>>>
-                            try:
-                                first_num = int(nums[0][0])  # get first number
-                            except (IndexError, ValueError):
-                                # When numbering has failed, `nums` is an empty list.
-                                # When the sequences are messed up, the first number can
-                                # be a string, like an EOS or an X token.
-                                first_num = 1
+                        if not started:
+                            start_index = seq_position - 2
+                        started = True
 
-                            # Should not do this before 10 in case of failure to
-                            # identify the gap.
-                            if (
-                                first_num > 1
-                                and first_num < 9
-                                and len(backfill_seqs) > 0
+                        ##  ANARCII sometimes doesn't continue numbering to end of seq
+                        # Solution: Identify residues remaining after the EOS
+                        # Decide forward fill to 127 (KL) /128 (H) needs to occur.
+
+                        # The last number depends on chain type - check type here.
+                        if str(pred_tokens[batch_no, 1]) in ["H", "A", "G"]:
+                            last_num = 128
+                        else:
+                            last_num = 127
+
+                        try:
+                            last_predicted_num = int(
+                                pred_tokens[batch_no, eos_position - 1]
+                            )
+                        except ValueError:
+                            last_predicted_num = last_num
+
+                        ### DEBUG ONLY ###
+                        # print(src_tokens[batch_no, eos_position - 1])
+                        # print(last_num, last_predicted_num)
+                        # print(last_predicted_num != last_num)
+
+                        if (
+                            src_tokens[batch_no, eos_position - 1] != "<EOS>"
+                            and last_predicted_num != last_num
+                            and last_predicted_num > 119
+                        ):
+                            # How far is EOS from 128?
+                            missing_count = last_num - int(
+                                pred_tokens[batch_no, eos_position - 1]
+                            )
+
+                            # How much is left of the source to number?
+                            seq_remainder = int(src_eos_position) - int(eos_position)
+
+                            missing_end_nums = [
+                                (x, " ")
+                                for x in range(last_predicted_num + 1, last_num + 1)
+                            ]
+
+                            missing_end_nums = missing_end_nums[:seq_remainder]
+
+                            # # DEBUG PURPOSE ONLY
+                            # print("\n")
+                            # for i in range(
+                            #     eos_position-3,
+                            #     eos_position + min(missing_count, seq_remainder)):
+                            #     print(
+                            #         "\t", src_tokens[batch_no, i + 0],
+                            #         "\t", pred_tokens[batch_no, i + 1],
+                            #     )
+
+                            missing_end_residues = []
+                            for i in range(
+                                eos_position,
+                                eos_position + min(missing_count, seq_remainder),
                             ):
-                                # This creates a list from 1 to first_num - 1
-                                vals = list(range(1, first_num))
-                                # the problem here is if there is a lot of junk...
-                                vals = vals[-len(backfill_seqs) :]
-                                nums = [(i, " ") for i in vals] + nums
-                                seqs = list(backfill_seqs[-len(vals) :]) + seqs
+                                missing_end_residues.append(
+                                    str(src_tokens[batch_no, i + 0])
+                                )
 
-                                # Adjust the start index for the backfill
-                                start_index = start_index - len(backfill_seqs)
+                            # print("Missing num:\t", missing_end_nums)
+                            # print("Missing res:\t", missing_end_residues)
 
-                            # Fill in up to 1 with gaps >>>>>
-                            try:
-                                first_num = int(nums[0][0])  # get first number
-                            except (IndexError, ValueError):
-                                # When numbering has failed, `nums` is an empty list.
-                                # When the sequences are messed up, the first number can
-                                # be a string, like an EOS or an X token.
-                                first_num = 1
+                            # # Append the misssing labels to seq and nums:
+                            nums = nums + missing_end_nums
+                            residues = residues + missing_end_residues
 
-                            for missing_num in range(
-                                first_num - 1, 0, -1
-                            ):  # Start from first_num - 1, stop at 1, step by -1
-                                nums.insert(0, (missing_num, " "))
-                                seqs.insert(0, "-")
+                        if not end_index:
+                            end_index = eos_position - 3
+                            # eos_position - 1: Moves to the token before <EOS>,
+                            # excluding the <EOS> marker itself.
+                            # Subtracting an additional 1 for SOS and 1 for CLS:
+                            # Adjusts further to skip over these two tokens.
 
-                            # Add gaps to nums >>>>>
-                            i = 1
-                            while i < len(nums):
-                                if (int(nums[i][0]) - 1) > int(nums[i - 1][0]):
-                                    nums.insert(i, (int(nums[i - 1][0]) + 1, " "))
-                                    seqs.insert(i, "-")
-                                else:
-                                    i += 1  # Only increment if no insertion is made
+                        ####### Backfill #######
+                        try:
+                            first_num = int(nums[0][0])  # get first number
+                        except (IndexError, ValueError):
+                            # When numbering has failed, `nums` is an empty list.
+                            # When the sequences are messed up, the first number can
+                            # be a string, like an EOS or an X token.
+                            first_num = 1
 
-                            # Ensure the last number is 128 >>>>>
-                            last_num = int(nums[-1][0])
-                            for missing_num in range(last_num + 1, 129):
-                                nums.append((missing_num, " "))
-                                seqs.append("-")
+                        # Should not do this before 10 in case of failure to
+                        # identify the gap.
+                        if (
+                            first_num > 1
+                            and first_num < 9
+                            and len(backfill_residues) > 0
+                        ):
+                            # This creates a list from 1 to first_num - 1
+                            vals = list(range(1, first_num))
+                            # the problem here is if there is a lot of junk...
+                            vals = vals[-len(backfill_residues) :]
+                            nums = [(i, " ") for i in vals] + nums
+                            residues = list(backfill_residues[-len(vals) :]) + residues
 
-                            # Successful - append.
-                            numbering.append(list(zip(nums, seqs)))
-                            alignment.append(
-                                {
-                                    "chain_type": str(pred_tokens[batch_no, 1]),
-                                    "score": round(normalized_score, 3),
-                                    "query_start": start_index,
-                                    "query_end": end_index,
-                                    "error": None,
-                                    "scheme": "imgt",
-                                }
-                            )
+                            # Adjust the start index for the backfill
+                            start_index = start_index - len(backfill_residues)
 
-                        except ValueError as e:
-                            # Capture the error message from the exception
-                            captured_error = str(e)
+                        # Fill in up to 1 with gaps >>>>>
+                        try:
+                            first_num = int(nums[0][0])  # get first number
+                        except (IndexError, ValueError):
+                            # When numbering has failed, `nums` is an empty list.
+                            # When the sequences are messed up, the first number can
+                            # be a string, like an EOS or an X token.
+                            first_num = 1
 
-                            numbering.append(None)
-                            alignment.append(
-                                {
-                                    "chain_type": "F",
-                                    "score": round(normalized_score, 3),
-                                    "query_start": None,
-                                    "query_end": None,
-                                    "error": "Could not apply numbering: "
-                                    f"{captured_error}",
-                                    "scheme": "imgt",
-                                }
-                            )
+                        for missing_num in range(
+                            first_num - 1, 0, -1
+                        ):  # Start from first_num - 1, stop at 1, step by -1
+                            nums.insert(0, (missing_num, " "))
+                            residues.insert(0, "-")
+
+                        # Add gaps to nums >>>>>
+                        i = 1
+                        while i < len(nums):
+                            if (int(nums[i][0]) - 1) > int(nums[i - 1][0]):
+                                nums.insert(i, (int(nums[i - 1][0]) + 1, " "))
+                                residues.insert(i, "-")
+                            else:
+                                i += 1  # Only increment if no insertion is made
+
+                        # Ensure the last number is 128 >>>>>
+                        last_num = int(nums[-1][0])
+                        for missing_num in range(last_num + 1, 129):
+                            nums.append((missing_num, " "))
+                            residues.append("-")
+
+                        # Successful - append.
+                        numbering.append(list(zip(nums, residues)))
+                        alignment.append(
+                            {
+                                "chain_type": str(pred_tokens[batch_no, 1]),
+                                "score": round(normalized_score, 3),
+                                "query_start": start_index,
+                                "query_end": end_index,
+                                "error": None,
+                                "scheme": "imgt",
+                            }
+                        )
 
             return numbering, alignment
