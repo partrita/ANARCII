@@ -121,7 +121,7 @@ class ModelRunner:
                 scores = output.topk(1, dim=2).values[:, :trg_len]
                 scores = scores.squeeze(
                     -1
-                )  # Remove the last dimension; shape becomes [batch_size, trg_len]
+                )  # Remove the last dim; shape becomes [batch_size, trg_len]
 
                 mask = (
                     (max_input != skip_token)
@@ -130,43 +130,28 @@ class ModelRunner:
                     & (max_input != sos_token)
                 )
 
-                # Find the first occurrence of `True` (eos_token) along the last
-                # dimension (trg_len)
+                # Find first `True` (eos_token) along last dim (trg_len)
                 eos_positions = max_input == eos_token
-                # Get the indices of the first occurrence of True along dimension 1
-                # (trg_len), for each batch
+                # Get the indices (trg_len), for each batch
                 first_eos_positions = torch.argmax(eos_positions.to(torch.int64), dim=1)
+
+                # Same logic to find SRC EOS position
+                src_eos_matrix = src == eos_token
+                src_eos_positions = torch.argmax(src_eos_matrix.to(torch.int64), dim=1)
+
                 # Check if no EOS token is found for each batch
-                no_eos_found = ~(
-                    eos_positions.any(dim=1)
-                )  # True if no EOS token is found in the row
+                no_eos_found = ~(eos_positions.any(dim=1))
+                # True if no EOS token is found in the row
                 # Set the position to trg_len if no EOS is found
+
                 first_eos_positions[no_eos_found] = torch.tensor(
                     trg_len - 1, device=self.device
                 )
 
-                # New code plan: Preallocte to numpy array.
-                # Place at designated positions in the numpy array >>> Process an entire
-                # output string, read from a text file.
+                # Autoregressive inference loop
                 for batch_no in range(batch_size):
                     num += 1
                     error_msg = None
-
-                    # # Ensure the score is calculated for numbered positions only.
-                    # eos_positions = (max_input[batch_no] == eos_token).nonzero()
-                    # eos_position = (
-                    #     eos_positions[0, 1]
-                    #     if eos_positions.size(0) > 0
-                    #     else trg_len - 1
-                    # )
-
-                    # mask = (max_input[batch_no, :eos_position] != skip_token) & \
-                    #     (max_input[batch_no, :eos_position] != x_token) & \
-                    #     (max_input[batch_no, :eos_position] != pad_token) & \
-                    #     (max_input[batch_no, :eos_position] != sos_token)
-
-                    # mask = mask.squeeze(0)  # Ensure mask has shape [eos_position]
-                    # print(mask[batch_no, :eos_position].shape)
 
                     eos_position = first_eos_positions[batch_no]
 
@@ -203,58 +188,50 @@ class ModelRunner:
                         start_index = None
                         end_index = None
 
+                        src_eos_position = src_eos_positions[batch_no].item() - 1
                         eos_position = eos_position.item()
 
-                        # Need to implement forward fill code being conservative...
-                        # How can you do this if you using an EOS?
-                        ### DEBUG SESSION
-                        # Work out residues remaining after the EOS and print them off.
+                        # ANARCII sometimes doesn't continue numbering to end of seq
+                        # Work out residues remaining after the EOS
+                        # Decide forward fill to 127 (KL) /128 (H) needs to occur
                         if src_tokens[batch_no, eos_position - 1] != "<EOS>":
-                            # model EOS and seq EOS are not the same.
-                            # Build a forward fill from 120 onwards.
-                            print("\n")
                             print(
-                                "EOS-1: ",
-                                pred_tokens[batch_no, eos_position - 2],
-                                src_tokens[batch_no, eos_position - 3],
+                                "\n",
+                                "Source EOS: ",
+                                src_eos_position,
+                                "Predicted EOS: ",
+                                eos_position,
                             )
-                            print(
-                                "EOS-2: ",
-                                pred_tokens[batch_no, eos_position - 1],
-                                src_tokens[batch_no, eos_position - 2],
+
+                            # How far is EOS from 128?
+                            missing_numbers = 128 - int(
+                                pred_tokens[batch_no, eos_position - 1]
                             )
+                            print(missing_numbers)
+
+                            # How much is left of the source to number?
+                            seq_remainder = int(src_eos_position) - int(eos_position)
+                            print(seq_remainder)
+
+                            for i in range(
+                                eos_position - 3,
+                                eos_position + min(missing_numbers, seq_remainder),
+                            ):
+                                print(
+                                    f"Pos {i}: ",
+                                    "\t",
+                                    src_tokens[batch_no, i + 0],
+                                    "\t",
+                                    pred_tokens[batch_no, i + 1],
+                                )
+
+                        else:  # Model has done just fine. Pred-EOS matches SRC-EOS
                             print(
-                                "EOS  : ",
-                                pred_tokens[batch_no, eos_position + 0],
-                                src_tokens[batch_no, eos_position - 1],
-                            )
-                            print(
-                                "EOS+1: ",
-                                pred_tokens[batch_no, eos_position + 1],
-                                src_tokens[batch_no, eos_position + 0],
-                            )
-                            print(
-                                "EOS+2: ",
-                                pred_tokens[batch_no, eos_position + 2],
-                                src_tokens[batch_no, eos_position + 1],
-                            )
-                        else:  # Model has done just fine.
-                            # Son, you gone be alright...
-                            print("\n")
-                            print(
-                                "EOS-1: ",
-                                pred_tokens[batch_no, eos_position - 2],
-                                src_tokens[batch_no, eos_position - 3],
-                            )
-                            print(
-                                "EOS-2: ",
-                                pred_tokens[batch_no, eos_position - 1],
-                                src_tokens[batch_no, eos_position - 2],
-                            )
-                            print(
-                                "EOS  : ",
-                                pred_tokens[batch_no, eos_position + 0],
-                                src_tokens[batch_no, eos_position - 1],
+                                "\n",
+                                "Source EOS: ",
+                                src_eos_position,
+                                "Predicted EOS: ",
+                                eos_position,
                             )
 
                         # If the model has confidently called the end of the CDR3 -
