@@ -1,8 +1,12 @@
+import re
+
 import torch
 
 from .sequences_utils import find_scfvs, pick_window, split_seq
 
 # from anarcii.pipeline.anarcii_constants import n_jump
+
+cwc = re.compile(r".{,40}(?=C.{5,20}W.{50,80}C).{,160}")
 
 
 class SequenceProcessor:
@@ -12,6 +16,7 @@ class SequenceProcessor:
         self.window_model = window_model
         self.verbose = verbose
         self.scfv = scfv
+        self.offsets = {}
 
     def process_sequences(self):
         # Step 1: Handle long sequences
@@ -24,7 +29,7 @@ class SequenceProcessor:
         self._sort_sequences_by_length()
 
         # Step 4: Tokenize sequences
-        return self._tokenize_sequences()
+        return self._tokenize_sequences(), self.offsets
 
     def _handle_long_sequences(self):
         if self.scfv:
@@ -75,31 +80,55 @@ class SequenceProcessor:
                     self.seqs[key] = long_seqs[key][start_index:end_index]
         else:
             # larger n_jump to reduce time.
-            n_jump = 4
-
+            n_jump = 3
             long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
 
             if long_seqs:
                 if self.verbose:
                     print(
-                        "\nLong sequences detected - running in sliding window. "
-                        "This is slow."
+                        f"\n {len(long_seqs)} Long sequences detected - "
+                        "running in sliding window. This is slow."
                     )
+
+                for long_key in list(long_seqs.keys()):  # Iterate over a copy of keys
+                    # first try a simple regex to look for cwc
+                    cwcs = list(cwc.finditer(long_seqs[long_key]))
+                    cwc_matches = [m.group() for m in cwcs]
+
+                    if len(cwc_matches) > 1:
+                        cwc_winner = pick_window(cwc_matches, self.window_model)
+
+                        # Append the offset
+                        self.offsets[long_key] = cwcs[cwc_winner].start()
+                        self.seqs[long_key] = cwc_matches[cwc_winner]
+
+                        # remove from long seqs dict
+                        del long_seqs[long_key]
+
+                    elif cwc_matches:
+                        self.offsets[long_key] = cwcs[0].start()
+                        self.seqs[long_key] = cwc_matches[0]
+                        # remove from long seqs dict
+                        del long_seqs[long_key]
 
                 # Splits the seqeucne in 90 length chunks
                 split_dict = {
                     key: split_seq(seq, n_jump=n_jump) for key, seq in long_seqs.items()
                 }
+
                 res_dict = {
                     key: pick_window(ls, self.window_model)
                     for key, ls in split_dict.items()
                 }
 
+                # magic number alert...
                 for key, value in res_dict.items():
                     start_index = max(
-                        (value * n_jump) - 20, 0
+                        (value * n_jump) - 40, 0
                     )  # Ensures start_index is at least 0
-                    end_index = (value * n_jump) + 140
+                    end_index = (value * n_jump) + 160
+
+                    self.offsets[key] = start_index
 
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]

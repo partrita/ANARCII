@@ -329,8 +329,9 @@ class Anarcii:
             sequences = SequenceProcessor(
                 dict_of_seqs, model, window_model, self.verbose, self.scfv
             )
-            processed_seqs = sequences.process_sequences()
+            processed_seqs, offsets = sequences.process_sequences()
 
+            # Offset for longseqs only - replace the indices...
             # ==========================================================================
             numbered_seqs = model(processed_seqs)
             # ==========================================================================
