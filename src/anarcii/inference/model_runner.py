@@ -59,7 +59,7 @@ class ModelRunner:
         model_loader = Loader(self.type, self.mode, self.device)
         return model_loader.model
 
-    def __call__(self, list_of_tuples):
+    def __call__(self, list_of_tuples, offsets):
         # Put into dataloader, make predictions, format the output.
         # NB: Provide a list of recommended batch sizes based on RAM and architecture
 
@@ -69,7 +69,10 @@ class ModelRunner:
 
         dl = dataloader(self.batch_size, seqs_only)
         numbering, alignment = self._predict_numbering(dl)
-        numbered_output = format_output(indices, names_only, numbering, alignment)
+        numbered_output = format_output(
+            indices, names_only, numbering, alignment, offsets
+        )
+
         return numbered_output
 
     def _predict_numbering(self, dl):
@@ -299,12 +302,12 @@ class ModelRunner:
 
                             residues.append(str(src_tokens[batch_no, seq_position - 1]))
 
+                            if not started:
+                                start_index = seq_position - 2
+                            started = True
+
                         if error_occurred:
                             continue
-
-                        if not started:
-                            start_index = seq_position - 2
-                        started = True
 
                         ##  ANARCII sometimes doesn't continue numbering to end of seq
                         # Solution: Identify residues remaining after the EOS

@@ -333,7 +333,7 @@ class Anarcii:
 
             # Offset for longseqs only - replace the indices...
             # ==========================================================================
-            numbered_seqs = model(processed_seqs)
+            numbered_seqs = model(processed_seqs, offsets)
             # ==========================================================================
 
             end = time.time()

@@ -63,13 +63,17 @@ def build_inward_list(length, start_num, end_num):
         return result
 
 
-def format_output(indices, names, numbering, alignment):
+def format_output(indices, names, numbering, alignment, offsets):
     if not len(indices) == len(names) == len(numbering) == len(alignment):
         exit("Length of names does not equal predictions, an error has occurred.")
 
     # Update `align` with `query_name`
     for nm, align in zip(names, alignment):
         align["query_name"] = nm
+        if nm in offsets.keys():
+            # print("Offset: ", offsets[nm])
+            align["query_start"] = align["query_start"] + offsets[nm]
+            align["query_end"] = align["query_end"] + offsets[nm]
 
     output = [
         (index, nm, number, align)
