@@ -6,7 +6,7 @@ from .sequences_utils import find_scfvs, pick_window, split_seq
 
 # from anarcii.pipeline.anarcii_constants import n_jump
 
-cwc = re.compile(r"C[a-zA-Z]{5,20}W[a-zA-Z]{40,80}C[a-zA-Z]")
+cwc = re.compile(r".{,40}(?=C.{5,20}W.{40,80}C).{,160}")
 
 
 class SequenceProcessor:
@@ -79,44 +79,52 @@ class SequenceProcessor:
                     self.seqs[key] = long_seqs[key][start_index:end_index]
         else:
             # larger n_jump to reduce time.
-            n_jump = 4
-
+            n_jump = 3
             long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
 
             if long_seqs:
                 if self.verbose:
                     print(
-                        "\nLong sequences detected - running in sliding window. "
-                        "This is slow."
+                        f"\n {len(long_seqs)} Long sequences detected - "
+                        "running in sliding window. This is slow."
                     )
 
-                # first try a simple regex to look for cwc
-                for key, seq in long_seqs.items():
-                    match = cwc.search(seq)
-                    if match:
-                        idx = match.span()
-                        self.seqs[key] = long_seqs[key][
-                            max(0, idx[0] - 40) : idx[0] + 160
-                        ]
-                    else:
-                        # Splits the seqeucne in 90 length chunks
-                        split_dict = {
-                            key: split_seq(seq, n_jump=n_jump)
-                            for key, seq in long_seqs.items()
-                        }
-                        res_dict = {
-                            key: pick_window(ls, self.window_model)
-                            for key, ls in split_dict.items()
-                        }
+                for long_key in list(long_seqs.keys()):  # Iterate over a copy of keys
+                    # first try a simple regex to look for cwc
+                    cwc_matches = list(cwc.finditer(long_seqs[long_key]))
 
-                        for key, value in res_dict.items():
-                            start_index = max(
-                                (value * n_jump) - 20, 0
-                            )  # Ensures start_index is at least 0
-                            end_index = (value * n_jump) + 140
+                    if len(cwc_matches) > 1:
+                        cwc_ls = [m.group() for m in cwc_matches]
+                        cwc_winner = pick_window(cwc_ls, self.window_model)
+                        self.seqs[long_key] = cwc_ls[cwc_winner]
 
-                            # Slice the sequence
-                            self.seqs[key] = long_seqs[key][start_index:end_index]
+                        # remove from long seqs dict
+                        del long_seqs[long_key]
+
+                    elif cwc_matches:
+                        self.seqs[long_key] = cwc_matches[0].group()
+                        # remove from long seqs dict
+                        del long_seqs[long_key]
+
+                # Splits the seqeucne in 90 length chunks
+                split_dict = {
+                    key: split_seq(seq, n_jump=n_jump) for key, seq in long_seqs.items()
+                }
+
+                res_dict = {
+                    key: pick_window(ls, self.window_model)
+                    for key, ls in split_dict.items()
+                }
+
+                # magic number alert...
+                for key, value in res_dict.items():
+                    start_index = max(
+                        (value * n_jump) - 40, 0
+                    )  # Ensures start_index is at least 0
+                    end_index = (value * n_jump) + 160
+
+                    # Slice the sequence
+                    self.seqs[key] = long_seqs[key][start_index:end_index]
 
                 if self.verbose:
                     print("Max probability windows selected.\n")

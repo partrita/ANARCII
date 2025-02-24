@@ -97,9 +97,6 @@ class Loader:
             torch.load(self.model_path, map_location=self.device, weights_only=True)
         )
 
-        if torch.__version__ >= "2.0.0" and self.device == "cuda":
-            S2S = torch.compile(S2S, mode="reduce-overhead")
-
         S2S.eval()
 
         return S2S
