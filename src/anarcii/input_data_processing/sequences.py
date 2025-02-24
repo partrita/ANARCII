@@ -1,8 +1,13 @@
+import re
+
 import torch
 
 from .sequences_utils import find_scfvs, pick_window, split_seq
 
 # from anarcii.pipeline.anarcii_constants import n_jump
+
+
+cwc = re.compile(r"C[a-zA-Z]{5,}?W[a-zA-Z]{40,}?C[a-zA-Z]")
 
 
 class SequenceProcessor:
@@ -86,26 +91,33 @@ class SequenceProcessor:
                         "This is slow."
                     )
 
-                # Splits the seqeucne in 90 length chunks
-                split_dict = {
-                    key: split_seq(seq, n_jump=n_jump) for key, seq in long_seqs.items()
-                }
-                res_dict = {
-                    key: pick_window(ls, self.window_model)
-                    for key, ls in split_dict.items()
-                }
+                # first try a simple regex to look for cwc
+                for key, seq in long_seqs.items():
+                    if cwc.search(seq):
+                        idx = cwc.search(seq).span()
+                        self.seqs[key] = long_seqs[key][max(0, idx[0] - 40) : 150]
+                    else:
+                        # Splits the seqeucne in 90 length chunks
+                        split_dict = {
+                            key: split_seq(seq, n_jump=n_jump)
+                            for key, seq in long_seqs.items()
+                        }
+                        res_dict = {
+                            key: pick_window(ls, self.window_model)
+                            for key, ls in split_dict.items()
+                        }
 
-                for key, value in res_dict.items():
-                    start_index = max(
-                        (value * n_jump) - 20, 0
-                    )  # Ensures start_index is at least 0
-                    end_index = (value * n_jump) + 140
+                        for key, value in res_dict.items():
+                            start_index = max(
+                                (value * n_jump) - 20, 0
+                            )  # Ensures start_index is at least 0
+                            end_index = (value * n_jump) + 140
 
-                    # Slice the sequence
-                    self.seqs[key] = long_seqs[key][start_index:end_index]
+                            # Slice the sequence
+                            self.seqs[key] = long_seqs[key][start_index:end_index]
 
-                if self.verbose:
-                    print("Max probability windows selected.\n")
+                        if self.verbose:
+                            print("Max probability windows selected.\n")
 
     def _convert_to_tuple_list(self):
         """
