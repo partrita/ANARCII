@@ -72,8 +72,12 @@ def format_output(indices, names, numbering, alignment, offsets):
         align["query_name"] = nm
         if nm in offsets.keys():
             # print("Offset: ", offsets[nm])
-            align["query_start"] = align["query_start"] + offsets[nm]
-            align["query_end"] = align["query_end"] + offsets[nm]
+            try:
+                align["query_start"] = align["query_start"] + offsets[nm]
+                align["query_end"] = align["query_end"] + offsets[nm]
+            except TypeError:
+                # catch None type in query start and end
+                continue
 
     output = [
         (index, nm, number, align)
