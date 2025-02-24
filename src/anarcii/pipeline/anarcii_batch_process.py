@@ -7,7 +7,7 @@ def batch_process(ls, model, window_model, verbose, txt_file):
         print(f"\nChunk: {counter} of {len(ls)}.")
 
         sequences = SequenceProcessor(chunk, model, window_model, verbose)
-        processed_seqs = sequences.process_sequences()
+        processed_seqs, offsets = sequences.process_sequences()
 
         # Process and write to the temp file
         numbered_seqs = model(processed_seqs)
