@@ -6,8 +6,7 @@ from .sequences_utils import find_scfvs, pick_window, split_seq
 
 # from anarcii.pipeline.anarcii_constants import n_jump
 
-
-cwc = re.compile(r"C[a-zA-Z]{5,}?W[a-zA-Z]{40,}?C[a-zA-Z]")
+cwc = re.compile(r"C[a-zA-Z]{5,20}W[a-zA-Z]{40,80}C[a-zA-Z]")
 
 
 class SequenceProcessor:
@@ -93,9 +92,12 @@ class SequenceProcessor:
 
                 # first try a simple regex to look for cwc
                 for key, seq in long_seqs.items():
-                    if cwc.search(seq):
-                        idx = cwc.search(seq).span()
-                        self.seqs[key] = long_seqs[key][max(0, idx[0] - 40) : 150]
+                    match = cwc.search(seq)
+                    if match:
+                        idx = match.span()
+                        self.seqs[key] = long_seqs[key][
+                            max(0, idx[0] - 40) : idx[0] + 160
+                        ]
                     else:
                         # Splits the seqeucne in 90 length chunks
                         split_dict = {
@@ -116,8 +118,8 @@ class SequenceProcessor:
                             # Slice the sequence
                             self.seqs[key] = long_seqs[key][start_index:end_index]
 
-                        if self.verbose:
-                            print("Max probability windows selected.\n")
+                if self.verbose:
+                    print("Max probability windows selected.\n")
 
     def _convert_to_tuple_list(self):
         """

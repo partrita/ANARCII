@@ -364,8 +364,12 @@ class ModelRunner:
                                 eos_position + min(missing_count, seq_remainder),
                             ):
                                 missing_end_residues.append(
-                                    str(src_tokens[batch_no, i + 0])
+                                    str(src_tokens[batch_no, i - 1])
                                 )
+
+                            # print("Last:\t", last_num)
+                            # print("Last pred num:\t", last_predicted_num)
+                            # print("Missing count:\t", missing_count)
 
                             # print("Missing num:\t", missing_end_nums)
                             # print("Missing res:\t", missing_end_residues)
