@@ -68,24 +68,18 @@ def format_output(indices, names, numbering, alignment, offsets):
         exit("Length of names does not equal predictions, an error has occurred.")
 
     # Update `align` with `query_name`
-    for nm, align in zip(names, alignment):
-        align["query_name"] = nm
-        if nm in offsets.keys():
-            # print("Offset: ", offsets[nm])
+    for name, align in zip(names, alignment):
+        align["query_name"] = name
+        if offset := offsets.get(name):
             try:
-                align["query_start"] = align["query_start"] + offsets[nm]
-                align["query_end"] = align["query_end"] + offsets[nm]
+                align["query_start"] += offset
+                align["query_end"] += offset
             except TypeError:
                 # catch None type in query start and end
                 continue
 
-    output = [
-        (index, nm, number, align)
-        for index, nm, number, align in zip(indices, names, numbering, alignment)
-    ]
+    output = sorted(zip(indices, names, numbering, alignment))
 
-    # Sort by index
-    output = sorted(output, key=lambda x: x[0])
     # Remove the original index to get back the original list format
     output = [(number, align) for _, _, number, align in output]
     return output
