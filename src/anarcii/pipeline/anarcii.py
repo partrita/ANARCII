@@ -36,6 +36,31 @@ from anarcii.pipeline.configuration_utils import configure_cpus, configure_devic
 
 # This is the orchestrator of the whole pipeline.
 class Anarcii:
+    """
+    This class instantiates the models based on user input.
+
+    Then it runs the number method, detecting input type.
+
+    Number method does:
+        * Checking of input sequence/file type.
+        * Based on input it formats to a dict of {name:seq } - SequenceProcessor
+        * Processed seqs are passed to model which uses ModelRunner class to perform
+        autogressive inference steps.
+        * Numbered seqs can be returned as a list, as well as be written to:
+             csv,json, txt
+
+    IF:
+        * Very long list of seqs, or a long fasta file - the process is broken up
+        into chunks and the outputs written to a text file in the working dir.
+
+        * PDB file - detected and renumbered in-situ, returning file_anarcii.pdb
+
+        * UNKNOWN model - a classifer model Classifii is called on partiallt processed
+        input seqs. This detects if they are TCRs or Antibodies. Then runs the relevant
+        model - returning the mixed list of both types.
+
+    """
+
     def __init__(
         self,
         seq_type: str = "antibody",
