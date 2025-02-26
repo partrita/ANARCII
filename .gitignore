@@ -19,6 +19,9 @@ __pycache__/
 *.pdb
 *.gz
 
+!*expected*.txt
+!*expected*.json
+
 # C extensions
 *.so
 
