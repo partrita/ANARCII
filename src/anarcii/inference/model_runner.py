@@ -184,11 +184,14 @@ class ModelRunner:
                                 "error": error_msg or "Score less than cut off.",
                             }
                         )
-                        # skip the rest of the
+                        # skip the rest of the loop.
                         continue
 
+                    # Sequence has not failed any immediate checks
+                    # begin populating the numbering labels.
                     residues, nums = [], []
                     backfill_residues = []
+
                     started = False
                     in_x_run, x_count = False, 0
                     start_index = None

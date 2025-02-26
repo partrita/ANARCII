@@ -1,6 +1,6 @@
 import string
 
-import torch.nn.utils.rnn as rnn_utils
+from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 
 # All upper case letters, then all upper case letters doubled, then a space.
@@ -14,29 +14,61 @@ alphabet = (
 )
 
 
-def floating_pad(list_of_lists, batch_size):
+def collate_fn(batch):
     """
-    Need a template.
-    One liner
-    Paragraph - if complex
-    Args... - descrption.
-    Returns
-    Raises
+    Custom collate function for DataLoader.
+
+    Ensures that each batch is padded dynamically to the longest sequence in
+    the batch.
     """
-    X = []
-    for i in range(0, len(list_of_lists), batch_size):
-        chunk = list_of_lists[i : i + batch_size]
-        X += rnn_utils.pad_sequence(chunk, batch_first=True, padding_value=0)
-    return X
+    return pad_sequence(batch, batch_first=True, padding_value=0)
 
 
-def dataloader(batch_size, ls):
-    padded = floating_pad(ls, batch_size)
-    dldr = DataLoader(padded, batch_size=batch_size, shuffle=False)
-    return dldr
+def dataloader(batch_size, list_of_tensors):
+    """
+    Returns a DataLoader that batches sequences dynamically.
+
+    Parameters:
+    - batch_size (int): Number of sequences per batch.
+    - list_of_tensors (list of tensors): Tokenized sequences.
+
+    Returns:
+    - DataLoader: Batches of shape [batch_size, max_seq_len].
+    """
+    return DataLoader(
+        list_of_tensors, batch_size=batch_size, shuffle=False, collate_fn=collate_fn
+    )
 
 
-def build_inward_list(length, start_num, end_num):
+def build_inward_list(length: int, start_num: int, end_num: int):
+    """
+    IMGT numbering is such that insertions are numbered differently depending
+    on where they are found.
+
+    Outside of a CDR: 44A, 44B, 44C
+    Inside of a CDR: 111A, 111B, 112C, 112B, 112A
+
+    The lang model simply outputs insertions with an X label. This fxn converts
+    to a number with an insertion label and provides a list of tuples
+    [(number,  letter), ...] based on the specified length,  start number, and
+    end number.
+
+    Parameters:
+    - length (int): The # of X tokens in the X run.
+    - start_num (int): The number that preceded the X run.
+    - end_num (int): The after the X run (used conditionally if in a loop).
+
+    Returns:
+    - list of tuples: Each tuple consists of a number (either start_num or
+    end_num) and a corresponding letter representing the instertion.
+
+    Behavior (conditional on loop):
+    - If start_num is within a predefined set of numbers (cdrs), the function
+    creates a structured sequence where the first half of the list uses
+    start_num, and the second half transitions to end_num in a mirrored pattern.
+    - If start_num is not in the predefined set, the function simply cycles
+    through the alphabet, pairing each letter with start_num.
+    """
     cdrs = list(range(27, 38)) + list(range(56, 65)) + list(range(105, 117))
 
     result = []
@@ -64,6 +96,14 @@ def build_inward_list(length, start_num, end_num):
 
 
 def format_output(indices, names, numbering, alignment, offsets):
+    """
+    Reorders the predicted outputs according to the original index.
+
+    In order to maximise the speed gains that come from sorting and padding by max
+    seq length in batches the original indicies were kept before sorting
+    and then used to reorder the length sorted outputs to the original order.
+    """
+
     if not len(indices) == len(names) == len(numbering) == len(alignment):
         exit("Length of names does not equal predictions, an error has occurred.")
 
@@ -80,6 +120,49 @@ def format_output(indices, names, numbering, alignment, offsets):
 
     output = sorted(zip(indices, numbering, alignment))
 
-    # Remove the original index to get back the original list format
+    # Remove the original index to get back the original list order
     output = [(number, align) for _, number, align in output]
     return output
+
+
+### MY OLD CODE ###
+# def floating_pad(list_of_tensors, batch_size):
+#     """
+#     Pads and batches a list of tokenized sequences.
+
+#     This function takes a list of tokenized sequences (each sequence being a
+#     list of PyTorch tensors), groups them into batches, pads them to the
+#     length of the longest sequence in each batch.
+
+#     They are iterated over and each padded sequence tensor is individually
+#     added to a list which is returned.
+
+#     Parameters:
+#     - list_of_tensors (list of lists of tensors): Tokenized seqs.
+#     - batch_size (int): Seqs per batch.
+
+#     Returns:
+#     - list of torch.Tensors: List of tensors of padded seqs. Length = total # of seqs
+#     """
+#     X = []
+#     for i in range(0, len(list_of_tensors), batch_size):
+#         chunk = list_of_tensors[i : i + batch_size]
+#         X += pad_sequence(chunk, batch_first=True, padding_value=0)
+#         # returns single tensor [batch_size, max_seq_len]
+
+#         # PLEASE NOTE:
+#         # += treats the tensor as an iterable and progressively adds
+#         # one "row" or sequence to the list
+#         # it removes the batch dimension.
+#         # Len of X is just the number of sequences.
+
+#     return X
+
+
+# def dataloader(batch_size, ls):
+#     """
+#     Move the tensors of padded sequences to a dataloader with defined batch size.
+#     """
+#     padded = floating_pad(ls, batch_size)
+#     dldr = DataLoader(padded, batch_size=batch_size, shuffle=False)
+#     return dldr
