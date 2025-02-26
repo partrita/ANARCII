@@ -4,9 +4,9 @@ import numpy as np
 class Tokeniser:
     def __init__(self):
         self.non_standard_aa = set("BOJUZ")
-        self.create_encodings()
+        self._create_encodings()
 
-    def create_encodings(self):
+    def _create_encodings(self):
         vocab = getattr(self, "vocab", [])
         self.tokens = np.array(vocab)
         self.char_to_int = {c: i for i, c in enumerate(vocab)}
