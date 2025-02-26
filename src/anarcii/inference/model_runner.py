@@ -85,9 +85,13 @@ class ModelRunner:
         return model_loader.model
 
     def __call__(self, list_of_tuples, offsets):
-        # Put into dataloader, make predictions, format the output.
-        # NB: Provide a list of recommended batch sizes based on RAM and architecture
+        """
+        This involves putting tokenised seqs into dataloader, making predictions,
+        formating the output. Returning the numbered seqs to the user in the order in
+        which they were given.
+        """
 
+        # NB: Provide a list of recommended batch sizes based on RAM and architecture
         seqs_only = [t[2] for t in list_of_tuples]  # tokenised
         names_only = [t[1] for t in list_of_tuples]
         indices = [t[0] for t in list_of_tuples]
@@ -101,6 +105,28 @@ class ModelRunner:
         return numbered_output
 
     def _predict_numbering(self, dl):
+        """
+        1 Runs the autoregressive inference loop which takes batches of sequences and
+        predicts for the whole batch
+
+        2 Converts token values to word and transfer to CPU  (if running on GPU)
+
+        3 Works out the valid indicies - IMGT integer numbers predicted by the model
+
+        4 find the EOS predicted by the model and the EOS of the input sequence
+
+        5 iterates through each batch of predictions
+            5A - check score is valid
+            5B - if valid iterate over individual seq.
+            5C - forward fill to end of the sequence for missed numbering
+            5D - back fill for the start if the seq
+            5E - Fill in up to 1 (starting IMGT residue) with gaps
+            5F - Add gaps to nums where we are missing a number in the middle (27, 29)
+
+        6 Populate the meta data dict and add to alignment
+
+        Return the
+        """
         if self.verbose:
             print(f"Making predictions on {len(dl)} batches.")
 
@@ -115,6 +141,8 @@ class ModelRunner:
         eos_token = self.eos_token
         skip_token = self.skip_token
         x_token = self.x_token
+
+        ### 1 RUN AUTOREGRESSIVE INFERENCE LOOP OVER BATCHES
 
         with torch.no_grad():
             for X in dl:
@@ -142,9 +170,12 @@ class ModelRunner:
                     max_input[:, t : t + 1] = pred_token
                     input = max_input[:, : t + 1]
 
-                # tokenise and transfer the batch to cpu
+                ### 2 tokenise and transfer the batch to cpu
+
                 src_tokens = self.sequence_tokeniser.tokens[src.to("cpu")]
                 pred_tokens = self.number_tokeniser.tokens[max_input.to("cpu")]
+
+                ### 3 work out IMGT integer values predicted by model
 
                 scores = output.topk(1, dim=2).values[:, :trg_len]
                 scores = scores.squeeze(
@@ -157,6 +188,9 @@ class ModelRunner:
                     & (max_input != pad_token)
                     & (max_input != sos_token)
                 )
+
+                ### 4 Find the predicted end of sequence by model,
+                # find actual end of input
 
                 # Find first `True` (eos_token) along last dim (trg_len)
                 eos_positions = max_input == eos_token
@@ -176,7 +210,8 @@ class ModelRunner:
                     trg_len - 1, device=self.device
                 )
 
-                # Autoregressive inference loop
+                ### 5   Iterate through each seq in batch
+
                 for batch_no in range(batch_size):
                     error_occurred = False
                     num += 1
@@ -188,6 +223,8 @@ class ModelRunner:
                         mask[batch_no, :eos_position]
                     ]
                     valid_scores = scores[batch_no, valid_indices]
+
+                    ### 5A   Check score is valid
 
                     if len(valid_indices) >= 50:
                         normalized_score = valid_scores.mean().item()
@@ -212,8 +249,9 @@ class ModelRunner:
                         # skip the rest of the loop.
                         continue
 
-                    # Sequence has not failed any immediate checks
-                    # begin populating the numbering labels.
+                    ### 5B   Begin populating the numbering labels but iterating over
+                    # each seq
+
                     residues, nums = [], []
                     backfill_residues = []
 
@@ -227,7 +265,7 @@ class ModelRunner:
                     eos_position = eos_position.item()
 
                     for seq_position in range(2, eos_position):
-                        # The if statement below may be redundant...
+                        ###      Break at actual EOS  in the input sequence
                         if src_tokens[batch_no, seq_position - 1] == "<EOS>":
                             # The end index position in the sequence
                             # -3 is to accomodate the shifted register due to -
@@ -235,12 +273,15 @@ class ModelRunner:
                             end_index = seq_position - 3
                             break
 
+                        ###      Break at SKIP tokens if numbering has started
                         elif (
                             pred_tokens[batch_no, seq_position] == "<SKIP>" and started
                         ):  # Break if hitting a skip post at the end.
                             end_index = seq_position - 3
                             break
 
+                        ###      Work out when numbering begins, ignore SKIP tokens if
+                        ###      not started
                         elif (
                             pred_tokens[batch_no, seq_position] == "<SKIP>"
                             and not started
@@ -250,10 +291,12 @@ class ModelRunner:
                             )
                             continue
 
+                        ###      If an instertion X is called, log as  in a run of X
                         elif pred_tokens[batch_no, seq_position] == "X":
                             x_count += 1
                             in_x_run = True
 
+                        ###      If breaking out of a X run, construct the labels
                         elif pred_tokens[batch_no, seq_position].isdigit() and in_x_run:
                             # This code breaks if we have a junk seq that
                             # has predicted runs of X (insertions)
@@ -300,6 +343,8 @@ class ModelRunner:
                                 error_occurred = True
                                 break
 
+                        ###      No conditions have been found - it is a number label,
+                        # append to nums
                         else:
                             try:
                                 nums.append(
@@ -323,6 +368,8 @@ class ModelRunner:
                                 error_occurred = True
                                 break
 
+                        ###      After each iteration through the sequence append the
+                        # sequence residue
                         residues.append(str(src_tokens[batch_no, seq_position - 1]))
 
                         if not started:
@@ -331,6 +378,9 @@ class ModelRunner:
 
                     if error_occurred:
                         continue
+
+                    ### 5C   Perform forward fill to end of the sequence, if
+                    # missed numbering
 
                     ##  ANARCII sometimes doesn't continue numbering to end of seq
                     # Solution: Identify residues remaining after the EOS
@@ -411,7 +461,8 @@ class ModelRunner:
                         # Subtracting an additional 1 for SOS and 1 for CLS:
                         # Adjusts further to skip over these two tokens.
 
-                    ####### Backfill #######
+                    ### 5D   Perform backfill for missed start of sequence, if missed
+                    # numbering
                     try:
                         first_num = int(nums[0][0])  # get first number
                     except (IndexError, ValueError):
@@ -433,7 +484,7 @@ class ModelRunner:
                         # Adjust the start index for the backfill
                         start_index = start_index - len(backfill_residues)
 
-                    # Fill in up to 1 with gaps >>>>>
+                    ### 5E Fill in up to 1 (starting IMGT residue) with gaps
                     try:
                         first_num = int(nums[0][0])  # get first number
                     except (IndexError, ValueError):
@@ -448,7 +499,10 @@ class ModelRunner:
                         nums.insert(0, (missing_num, " "))
                         residues.insert(0, "-")
 
-                    # Add gaps to nums >>>>>
+                    ### 5F Add gaps to nums where we are missing a number:
+                    # e.g. predicted labels are 91 L, 93 K. convert to >>
+                    # 91 L, 92 -, 93 K
+
                     i = 1
                     while i < len(nums):
                         if (int(nums[i][0]) - 1) > int(nums[i - 1][0]):
@@ -462,6 +516,8 @@ class ModelRunner:
                     for missing_num in range(last_num + 1, 129):
                         nums.append((missing_num, " "))
                         residues.append("-")
+
+                    ### 6 Populate the meta data dict and append to alignment list
 
                     # Successful - append.
                     numbering.append(list(zip(nums, residues)))

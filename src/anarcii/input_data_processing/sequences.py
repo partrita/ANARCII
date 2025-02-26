@@ -14,7 +14,8 @@ cwc_pattern = re.compile(r".{,40}(?=C.{5,25}W.{50,80}C).{,160}")
 
 class SequenceProcessor:
     """
-    This class takes a dict of sequences  {name: seq}.
+    This class takes a dict of sequences  {name: seq}. As well as pre-defined models
+    the relate to the sequence type (antibody, TCR, shark).
 
     It has several steps it performs to pre-process the list of seqs so it can be
     consumed by the language model. These include:
@@ -38,7 +39,17 @@ class SequenceProcessor:
     """
 
     def __init__(self, seqs, model, window_model, verbose, scfv=False):
-        self.seqs = seqs  # dict
+        """
+        Args:
+            seqs (dict): A dictionary, keys are sequence IDs and values are sequences.
+            model (torch.nn.Module): PyTorch model for processing full sequences.
+            window_model (torch.nn.Module): modification of the above model that uses
+            a one step decoder to get get a single logit value representing
+            score for the input window (sequence fragment).
+            verbose (bool): Whether to print detailed logs.
+            scfv (bool, optional): A flag for special processing. Defaults to False.
+        """
+        self.seqs = seqs
         self.model = model
         self.window_model = window_model
         self.verbose = verbose
