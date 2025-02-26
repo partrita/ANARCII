@@ -1,21 +1,20 @@
 import json
 import os
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 
 from anarcii.classifier import classifii_model
 from anarcii.classifier.classifii_utils import dataloader, split_types
+from anarcii.input_data_processing.tokeniser import Tokeniser
 
 
-class TypeTokeniser:
+class TypeTokeniser(Tokeniser):
     def __init__(self, vocab_type="protein"):
         self.vocab_type = vocab_type
         self.pad = "<PAD>"
         self.start = "<SOS>"
         self.end = "<EOS>"
-        self.non_standard_aa = set("BOJUZ")
 
         if self.vocab_type == "protein":
             self.vocab = [
@@ -35,16 +34,7 @@ class TypeTokeniser:
         else:
             raise ValueError(f"Vocab type {vocab_type} not supported")
 
-        self.tokens = np.array(self.vocab)
-        self.char_to_int = {c: i for i, c in enumerate(self.vocab)}
-
-    def encode(self, sequence: list[str]):
-        # Replace non-standard amino acids with 'X'
-        standardised_sequence: list[int] = [
-            self.char_to_int[char if char not in self.non_standard_aa else "X"]
-            for char in sequence
-        ]
-        return np.array(standardised_sequence, np.int32)
+        super().__init__()
 
 
 class TypeLoader:

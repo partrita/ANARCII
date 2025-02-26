@@ -2,7 +2,7 @@
 import torch
 
 # import matplotlib.pyplot as plt
-from ..input_data_processing.tokeniser import Tokenizer
+from ..input_data_processing.tokeniser import NumberingTokeniser
 from .inference_utils import dataloader
 from .model_loader import Loader
 
@@ -69,12 +69,12 @@ class WindowFinder:
         self.scfv = scfv
 
         if self.type in ["antibody", "shark"]:
-            self.sequence_tokeniser = Tokenizer("protein_antibody")
-            self.number_tokeniser = Tokenizer("number_antibody")
+            self.sequence_tokeniser = NumberingTokeniser("protein_antibody")
+            self.number_tokeniser = NumberingTokeniser("number_antibody")
 
         elif self.type == "tcr":
-            self.sequence_tokeniser = Tokenizer("protein_tcr")
-            self.number_tokeniser = Tokenizer("number_tcr")
+            self.sequence_tokeniser = NumberingTokeniser("protein_tcr")
+            self.number_tokeniser = NumberingTokeniser("number_tcr")
         else:
             raise ValueError(f"Invalid model type: {self.type}")
 
