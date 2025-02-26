@@ -78,8 +78,8 @@ def format_output(indices, names, numbering, alignment, offsets):
                 # catch None type in query start and end
                 continue
 
-    output = sorted(zip(indices, names, numbering, alignment))
+    output = sorted(zip(indices, numbering, alignment))
 
     # Remove the original index to get back the original list format
-    output = [(number, align) for _, _, number, align in output]
+    output = [(number, align) for _, number, align in output]
     return output
