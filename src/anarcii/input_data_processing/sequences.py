@@ -9,7 +9,7 @@ from .sequences_utils import find_scfvs, pick_window, split_seq
 # A regex pattern to match no more than 200 residues, containing a 'CWC' pattern
 # (cysteine followed by 5–20 residues followed by a tryptophan followed by 50–80
 # residues followed by another cysteine) starting no later than the 41st residue.
-cwc_pattern = re.compile(r".{,40}(?=C.{5,20}W.{50,80}C).{,160}")
+cwc_pattern = re.compile(r".{,40}(?=C.{5,25}W.{50,80}C).{,160}")
 
 
 class SequenceProcessor:
