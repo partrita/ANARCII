@@ -1,6 +1,6 @@
 import torch
 
-from ..input_data_processing.tokeniser import Tokenizer
+from ..input_data_processing.tokeniser import NumberingTokeniser
 from .inference_utils import build_inward_list, dataloader, format_output
 from .model_loader import Loader
 
@@ -42,12 +42,12 @@ class ModelRunner:
         self.verbose = verbose
 
         if self.type in ["antibody", "shark"]:
-            self.sequence_tokeniser = Tokenizer("protein_antibody")
-            self.number_tokeniser = Tokenizer("number_antibody")
+            self.sequence_tokeniser = NumberingTokeniser("protein_antibody")
+            self.number_tokeniser = NumberingTokeniser("number_antibody")
 
         elif self.type == "tcr":
-            self.sequence_tokeniser = Tokenizer("protein_tcr")
-            self.number_tokeniser = Tokenizer("number_tcr")
+            self.sequence_tokeniser = NumberingTokeniser("protein_tcr")
+            self.number_tokeniser = NumberingTokeniser("number_tcr")
         else:
             raise ValueError(f"Invalid model type: {self.type}")
 
