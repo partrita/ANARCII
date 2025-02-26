@@ -9,6 +9,31 @@ from .model_loader import Loader
 
 
 class ModelRunner:
+    """
+    This class orchestrates the auto-regressive inference steps.
+    It takes the list of tokensised seqs, pads then batches into a dataloader.
+    The dataloader is iterated through and batches processed.
+
+    Numbering is predicted in parallel for each batch in an autoregressive inference
+    loop that iterates for as many steps as the longest seq per batch.
+
+    Predicted tokens are then tranlated back to corresponding number and instertion
+    labels.
+
+    Each sequence is processed one by one in a for loop. In the for loop the chain call
+    and sequence score are identifed, then based on this score and the number of
+    integer labels (non insertion [x] labels) then the full sequence is processed.
+
+    Processin invovles working out where seq numbering begins (detect [<skip>] tokens),
+    if some numbering is missed from the begininng or end (backfill and forward fill)
+    and when we have insertions [X] translating them to a number based on the labels
+    either side [X] [X] [X] >> (111, A) (112, B) (112, A).
+
+    Finally the sequence is appended with empty labels to ensure that the returned
+    result contains all integer labels from 1 to 128.
+
+    """
+
     def __init__(self, sequence_type, mode, batch_size, device, verbose):
         self.type = sequence_type.lower()
         self.mode = mode.lower()

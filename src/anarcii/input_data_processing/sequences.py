@@ -13,6 +13,30 @@ cwc_pattern = re.compile(r".{,40}(?=C.{5,25}W.{50,80}C).{,160}")
 
 
 class SequenceProcessor:
+    """
+    This class takes a dict of sequences  {name: seq}.
+
+    It has several steps it performs to pre-process the list of seqs so it can be
+    consumed by the language model. These include:
+
+    # 1
+    * Checking for long seqs that exceed the context window (200 residues)
+    * Working out what "window" within the long seq should be passed to the model.
+    * holding the offsets to allow us to translate the indices back to the original
+    long seq.
+
+    # 2
+    * Converting the list of seqs to a tuple that has indices corresponding to user
+    input order.
+    * Sorting the tuple by length of seqs to ensure we can pad batches of seqs
+    that all share a similar length - to reduce unnecessary autoregressive infercence
+    steps.
+
+    # 3
+    * Tokenising the sequences to numbers - then putting these into torch tensors.
+
+    """
+
     def __init__(self, seqs, model, window_model, verbose, scfv=False):
         self.seqs = seqs  # dict
         self.model = model
