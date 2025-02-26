@@ -1,14 +1,30 @@
 import numpy as np
 
+non_standard_aa = set("BOJUZ")
 
-class Tokenizer:
+
+class Tokeniser:
+    def __init__(self):
+        vocab = getattr(self, "vocab", [])
+        self.tokens = np.array(vocab)
+        self.char_to_int = {c: i for i, c in enumerate(vocab)}
+        if "X" in vocab:
+            for char in non_standard_aa:
+                self.char_to_int[char] = self.char_to_int["X"]
+
+    def encode(self, sequence: list[str]):
+        # Replace non-standard amino acids with 'X'
+        standardised_sequence: list[int] = [self.char_to_int[char] for char in sequence]
+        return np.array(standardised_sequence, np.int32)
+
+
+class NumberingTokeniser(Tokeniser):
     def __init__(self, vocab_type="protein"):
         self.vocab_type = vocab_type
         self.pad = "<PAD>"
         self.start = "<SOS>"
         self.end = "<EOS>"
         self.skip = "<SKIP>"
-        self.non_standard_aa = set("BOJUZ")
 
         # Antibodies ==================================================
         if self.vocab_type == "protein_antibody":
@@ -60,13 +76,4 @@ class Tokenizer:
         else:
             raise ValueError(f"Vocab type {vocab_type} not supported")
 
-        self.tokens = np.array(self.vocab)
-        self.char_to_int = {c: i for i, c in enumerate(self.vocab)}
-
-    def encode(self, ls):
-        # Replace non-standard amino acids with 'X'
-        ls = [char if char not in self.non_standard_aa else "X" for char in ls]
-        integer_encoded = np.array(
-            [self.char_to_int[char] for char in ls], dtype=np.int32
-        )
-        return integer_encoded
+        super().__init__()
