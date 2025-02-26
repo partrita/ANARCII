@@ -1,43 +1,51 @@
-import os
-import time
+import pytest
 
 from anarcii import Anarcii
 
 
-def test_files_are_identical(expected, test):
-    with open(expected) as f1, open(test) as f2:
-        content1 = f1.read()
-        content2 = f2.read()
+@pytest.fixture
+def anarcii_model():
+    model = Anarcii(
+        seq_type="antibody",
+        batch_size=64,
+        cpu=False,
+        ncpu=12,
+        mode="speed",
+        verbose=False,
+    )
+    model.number("data/sabdab_filtered.fa")
 
-    assert content1 == content2, f"Files {expected} and {test} are different!"
-
-    if os.path.exists(test):
-        os.remove(test)
+    return model
 
 
-begin = time.time()
-model = Anarcii(
-    seq_type="antibody", batch_size=64, cpu=False, ncpu=12, mode="speed", verbose=False
-)
+def test_files_are_identical(anarcii_model, tmp_path):
+    txt_file = tmp_path / "antibody_test_1.txt"
+    json_file = tmp_path / "antibody_test_1.json"
 
-results = model.number("data/sabdab_filtered.fa")
+    anarcii_model.to_text(tmp_path / txt_file)
+    anarcii_model.to_json(tmp_path / json_file)
 
-# Original test result.
+    for expected, test in zip(
+        ["data/antibody_expected_1.txt", "data/antibody_expected_1.json"],
+        [txt_file, json_file],
+    ):
+        with open(expected) as f1, open(test) as f2:
+            content1 = f1.read().strip()
+            content2 = f2.read().strip()
+
+        assert content1 == content2, f"Files {expected} and {test} are different!"
+
+
+## FILE GENERATION
+# model = Anarcii(
+#     seq_type="antibody",
+#     batch_size=64,
+#     cpu=False,
+#     ncpu=12,
+#     mode="speed",
+#     verbose=False,
+# )
+# model.number("data/sabdab_filtered.fa")
+
 # model.to_text("data/antibody_expected_1.txt")
 # model.to_json("data/antibody_expected_1.json")
-
-txt_file = "data/antibody_test_1.txt"
-json_file = "data/antibody_test_1.json"
-
-model.to_text(txt_file)
-model.to_json(json_file)
-
-end = time.time()
-runtime = round((end - begin) / 60, 2)
-print("Runtime: ", runtime)
-
-# Run the tests
-test_files_are_identical("data/antibody_expected_1.txt", txt_file)
-test_files_are_identical("data/antibody_expected_1.json", json_file)
-
-print("Antibody test has passed.")

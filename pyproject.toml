@@ -35,5 +35,5 @@ lint.select = [
     "UP",  # pyupgrade - https://docs.astral.sh/ruff/rules/#pyupgrade-up
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]  # Allow assert statements in test files
