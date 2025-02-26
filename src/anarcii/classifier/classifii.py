@@ -38,13 +38,13 @@ class TypeTokeniser:
         self.tokens = np.array(self.vocab)
         self.char_to_int = {c: i for i, c in enumerate(self.vocab)}
 
-    def encode(self, ls):
+    def encode(self, sequence: list[str]):
         # Replace non-standard amino acids with 'X'
-        ls = [char if char not in self.non_standard_aa else "X" for char in ls]
-        integer_encoded = np.array(
-            [self.char_to_int[char] for char in ls], dtype=np.int32
-        )
-        return integer_encoded
+        standardised_sequence: list[int] = [
+            self.char_to_int[char if char not in self.non_standard_aa else "X"]
+            for char in sequence
+        ]
+        return np.array(standardised_sequence, np.int32)
 
 
 class TypeLoader:
