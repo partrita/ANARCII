@@ -227,6 +227,13 @@ class Anarcii:
                         "Running on a list of tuples of format: [(name,sequence), ...]."
                     )
 
+                nms = [x[0] for x in seqs]
+                if len(nms) != len(set(nms)):  # Detect duplicates
+                    raise SystemExit(
+                        "Error: Duplicate names found."
+                        + "Please ensure all names are unique."
+                    )
+
                 dict_of_seqs = {}
                 for t in seqs:
                     # Split each sequence as needed and update the dictionary

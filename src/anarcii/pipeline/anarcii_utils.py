@@ -1,5 +1,6 @@
 import gzip
 import re
+import sys
 
 from .anarcii_constants import conserved
 
@@ -8,6 +9,13 @@ def is_tuple_list(obj):
     if all(isinstance(item, str) for item in obj):  # list of strings
         return False
     elif all(isinstance(item, tuple) for item in obj):  # list of tuples
+        nms = [x[0] for x in obj]
+        if len(nms) != len(set(nms)):  # Detect duplicates
+            print(
+                "\nError: Duplicate names found. Please ensure all names are unique.\n"
+            )
+            sys.exit(0)
+
         return True
     else:
         print("Contents of list is neither list of strings, nor list of tuples")
@@ -88,6 +96,11 @@ def read_fasta(file_path, verbose):
                     sequences.append((f"{name}_{i}", part))
             else:
                 sequences.append((name, seq))
+
+    nms = [x[0] for x in sequences]
+    if len(nms) != len(set(nms)):  # Detect duplicates
+        print("\nError: Duplicate names found. Please ensure all names are unique.\n")
+        sys.exit(0)
 
     return sequences
 

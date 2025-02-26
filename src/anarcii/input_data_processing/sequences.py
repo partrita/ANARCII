@@ -14,7 +14,7 @@ cwc_pattern = re.compile(r".{,40}(?=C.{5,25}W.{50,80}C).{,160}")
 
 class SequenceProcessor:
     def __init__(self, seqs, model, window_model, verbose, scfv=False):
-        self.seqs = seqs
+        self.seqs = seqs  # dict
         self.model = model
         self.window_model = window_model
         self.verbose = verbose
