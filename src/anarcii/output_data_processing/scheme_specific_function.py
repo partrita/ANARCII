@@ -1,5 +1,5 @@
 # These are used to apply custom modifications for each scheme.
-from anarcii.inference.inference_utils import alphabet
+from anarcii.inference.utils import alphabet
 
 
 def scheme_specifics(regions, scheme_name, chain_type):

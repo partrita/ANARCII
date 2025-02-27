@@ -4,8 +4,8 @@ import os
 import torch
 import torch.nn.functional as F
 
-from anarcii.classifier import classifii_model
-from anarcii.classifier.classifii_utils import dataloader, split_types
+from anarcii.classifii import model
+from anarcii.classifii.utils import dataloader, split_types
 from anarcii.input_data_processing.tokeniser import Tokeniser
 
 
@@ -63,7 +63,7 @@ class TypeLoader:
         return params
 
     def _load_model(self):
-        ENC = classifii_model.Encoder(
+        ENC = model.Encoder(
             self.INPUT_DIM,
             self.HID_DIM,
             self.ENC_LAYERS,
@@ -73,7 +73,7 @@ class TypeLoader:
             self.device,
         )
 
-        DEC = classifii_model.Decoder(
+        DEC = model.Decoder(
             self.OUTPUT_DIM,
             self.HID_DIM,
             self.DEC_LAYERS,
@@ -83,9 +83,7 @@ class TypeLoader:
             self.device,
         )
 
-        S2S = classifii_model.S2S(
-            ENC, DEC, self.SRC_PAD_IDX, self.TRG_PAD_IDX, self.device
-        )
+        S2S = model.S2S(ENC, DEC, self.SRC_PAD_IDX, self.TRG_PAD_IDX, self.device)
 
         model_path = os.path.join(self.script_dir, "classifii.pt")
         S2S.load_state_dict(

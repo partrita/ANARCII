@@ -2,7 +2,7 @@ import gzip
 import re
 import sys
 
-from .anarcii_constants import conserved
+from .constants import conserved
 
 
 def is_tuple_list(obj):

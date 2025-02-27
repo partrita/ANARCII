@@ -1,4 +1,4 @@
-from .pdb_utils import ATOM_RECORDS, THREE_TO_ONE, count_repeated_sequences
+from .utils import ATOM_RECORDS, THREE_TO_ONE, count_repeated_sequences
 
 
 def renumber_pdb_with_anarcii(

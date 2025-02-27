@@ -2,7 +2,7 @@ import re
 
 import torch
 
-from .sequences_utils import find_scfvs, pick_window, split_seq
+from .utils import find_scfvs, pick_window, split_seq
 
 # from anarcii.pipeline.anarcii_constants import n_jump
 

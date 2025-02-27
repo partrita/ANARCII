@@ -1,8 +1,8 @@
 import os
 import time
 
-from anarcii.classifier.classifii import Classifii
-from anarcii.classifier.classifii_utils import join_mixed_types
+from anarcii.classifii import Classifii
+from anarcii.classifii.utils import join_mixed_types
 from anarcii.inference.model_runner import ModelRunner
 from anarcii.inference.window_selector import WindowFinder
 
@@ -10,12 +10,13 @@ from anarcii.inference.window_selector import WindowFinder
 from anarcii.input_data_processing.sequences import SequenceProcessor
 from anarcii.output_data_processing.convert_to_legacy_format import convert_output
 from anarcii.output_data_processing.schemes import convert_number_scheme
-from anarcii.pdb_process.pdb import renumber_pdb_with_anarcii
-from anarcii.pipeline.anarcii_batch_process import batch_process
-from anarcii.pipeline.anarcii_constants import max_seqs_len
+from anarcii.pdb_process import renumber_pdb_with_anarcii
+from anarcii.pipeline.batch_process import batch_process
+from anarcii.pipeline.configuration import configure_cpus, configure_device
+from anarcii.pipeline.constants import max_seqs_len
 
 # Processing output
-from anarcii.pipeline.anarcii_methods import (
+from anarcii.pipeline.methods import (
     print_initial_configuration,
     to_csv,
     to_dict,
@@ -25,13 +26,12 @@ from anarcii.pipeline.anarcii_methods import (
 )
 
 # Functions for processing input
-from anarcii.pipeline.anarcii_utils import (
+from anarcii.pipeline.utils import (
     count_lines_with_greater_than,
     is_tuple_list,
     read_fasta,
     split_sequence,
 )
-from anarcii.pipeline.configuration_utils import configure_cpus, configure_device
 
 
 # This is the orchestrator of the whole pipeline.
