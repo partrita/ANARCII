@@ -3,10 +3,9 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-added-large-files
+        exclude: "^tests/data/.*"
       - id: check-yaml
       - id: check-merge-conflict
-      - id: check-added-large-files
-        exclude: 'tests/data/'
 
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
