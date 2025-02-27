@@ -12,6 +12,8 @@ def gap_missing(numbering):
     # Gaps placed where a number is not present
     num = [((0, " "), "-")]
     for p, a in numbering:
+        # print(p)
+        # print(a)
         if p[0] > num[-1][0][0] + 1:
             for _i in range(num[-1][0][0] + 1, p[0]):
                 num.append(((_i, " "), "-"))
@@ -75,7 +77,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
                     insert_count = 0
                 else:
                     _regions[num_region_index].append(
-                        ((str(NEW_NUM), alphabet[insert_count]), letter)
+                        ((NEW_NUM, alphabet[insert_count]), letter)
                     )
                     insert_count += 1
 
@@ -90,7 +92,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
                 insert_count = 0
             else:
                 _regions[num_region_index].append(
-                    ((str(NEW_NUM), alphabet[insert_count]), letter)
+                    ((NEW_NUM, alphabet[insert_count]), letter)
                 )
                 insert_count += 1
 
@@ -100,7 +102,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
 
             NEW_NUM = num + offset
             _regions[num_region_index].append(
-                ((str(NEW_NUM), alphabet[insert_count]), letter)
+                ((NEW_NUM, alphabet[insert_count]), letter)
             )
             insert_count += 1
 
@@ -135,6 +137,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
         regions=_regions, scheme_name=scheme_name, chain_type=chain_type
     )
 
+    # print("### REGIONS ###")
     # print(_regions)
 
     # ### Debug only ###

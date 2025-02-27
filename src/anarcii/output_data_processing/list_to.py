@@ -3,6 +3,9 @@ import re
 
 import pandas as pd
 
+### BEN - NEW CSV CODE MUST CHECK FOR DUPLICATE NUMBERS AND RETURN A WARNING -
+# THEN DROP THE ROW ###
+
 
 def write_csv(ls, filename=None):
     # Works on the simple output
