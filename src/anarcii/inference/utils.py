@@ -9,9 +9,17 @@ alphabet = (
     list(string.ascii_uppercase)
     # All upper case letters, doubled.
     + [2 * letter for letter in string.ascii_uppercase]
-    # A space.
-    + [" "]
+    # # A space.
+    + [
+        " "
+    ]  # Cannot get rid of this until you test it does not impact alt number schemes.
 )
+
+# Allowed and forbidden IMGT instertion
+full_cdrs = list(range(27, 39)) + list(range(56, 66)) + list(range(105, 118))
+cdr_instertion_starts = [32, 60, 111]
+forbidden_cdr_insertions = [x for x in full_cdrs if x not in cdr_instertion_starts]
+allowed_non_cdr_instertions = [x for x in range(1, 129) if x not in full_cdrs]
 
 
 def collate_fn(batch):
@@ -63,16 +71,16 @@ def build_inward_list(length: int, start_num: int, end_num: int):
     end_num) and a corresponding letter representing the instertion.
 
     Behavior (conditional on loop):
-    - If start_num is within a predefined set of numbers (cdrs), the function
+    - If start_num is within a predefined set of start numbers (cdrs), the function
     creates a structured sequence where the first half of the list uses
     start_num, and the second half transitions to end_num in a mirrored pattern.
-    - If start_num is not in the predefined set, the function simply cycles
+    - If in the forbidden set then a value error is raised.
+    - If start_num is not in the cdr start or forbidden set, the function simply cycles
     through the alphabet, pairing each letter with start_num.
-    """
-    cdrs = list(range(27, 38)) + list(range(56, 65)) + list(range(105, 117))
 
+    """
     result = []
-    if int(start_num) in cdrs:
+    if int(start_num) in cdr_instertion_starts:
         # Calculate midpoint
         midpoint = length // 2  # Find the middle index by floor division
         # 5 becomes 2 ensures that we start at the higher number if uneven
@@ -89,10 +97,16 @@ def build_inward_list(length: int, start_num: int, end_num: int):
                 )
         return result
 
-    else:
+    elif int(start_num) in forbidden_cdr_insertions:
+        raise ValueError("Forbidden cdr insertion predicted.")
+
+    elif int(start_num) in allowed_non_cdr_instertions:
         for i in range(length):
             result.append((int(start_num), alphabet[i % len(alphabet)]))
         return result
+
+    else:
+        raise ValueError("Error in converting predicted insertions labels.")
 
 
 def format_output(indices, names, numbering, alignment, offsets):
