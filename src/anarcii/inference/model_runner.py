@@ -1,6 +1,7 @@
 import torch
 
-from ..input_data_processing.tokeniser import NumberingTokeniser
+from anarcii.input_data_processing.tokeniser import NumberingTokeniser
+
 from .model_loader import Loader
 from .utils import build_inward_list, dataloader, format_output
 

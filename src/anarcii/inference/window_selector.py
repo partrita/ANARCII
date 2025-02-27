@@ -2,7 +2,8 @@
 import torch
 
 # import matplotlib.pyplot as plt
-from ..input_data_processing.tokeniser import NumberingTokeniser
+from anarcii.input_data_processing.tokeniser import NumberingTokeniser
+
 from .model_loader import Loader
 from .utils import dataloader
 
