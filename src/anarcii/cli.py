@@ -1,6 +1,6 @@
 import argparse
 
-from anarcii.pipeline.anarcii import Anarcii
+from anarcii.pipeline import Anarcii
 
 
 def main():

@@ -1,4 +1,4 @@
-from anarcii.inference.inference_utils import alphabet
+from anarcii.inference.utils import alphabet
 
 from .scheme_specific_function import scheme_specifics
 from .schemes_constants import schemes

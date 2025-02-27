@@ -2,9 +2,10 @@
 import torch
 
 # import matplotlib.pyplot as plt
-from ..input_data_processing.tokeniser import NumberingTokeniser
-from .inference_utils import dataloader
+from anarcii.input_data_processing.tokeniser import NumberingTokeniser
+
 from .model_loader import Loader
+from .utils import dataloader
 
 
 def first_index_above_threshold(preds, threshold=35):

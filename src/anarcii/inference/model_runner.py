@@ -1,8 +1,9 @@
 import torch
 
-from ..input_data_processing.tokeniser import NumberingTokeniser
-from .inference_utils import build_inward_list, dataloader, format_output
+from anarcii.input_data_processing.tokeniser import NumberingTokeniser
+
 from .model_loader import Loader
+from .utils import build_inward_list, dataloader, format_output
 
 # NEED TO COME BACK TO THIS CODE AND LOOK AT THE TRY EXCEPT LOOPS....
 # SOMETHING SHOULD BE MODIFIED TO REDUCE THEM....
