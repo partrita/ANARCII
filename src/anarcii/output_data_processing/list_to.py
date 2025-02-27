@@ -68,13 +68,17 @@ def write_text(ls, file_path):
     with open(file_path, "w") as file:
         for sublist in ls:
             nums = sublist[0]
-            name = sublist[1]["query_name"]
-            chain = sublist[1]["chain_type"]
-            score = sublist[1]["score"]
-            error = sublist[1]["error"]
+            name = sublist[1].get("query_name", "Unknown")
+            chain = sublist[1].get("chain_type", "Unknown")
+            score = sublist[1].get("score", "Unknown")
+            error = sublist[1].get("error", "Unknown")
+            start = sublist[1].get("query_start", "Unknown")
+            end = sublist[1].get("query_end", "Unknown")
 
-            line = f"{name}, {chain}, {score}, {repr(nums)}, {error}\n"
-            file.write(line)
+            file.write(
+                f"{name}, Chain: {chain}, {score}, Start: {start}, End: {end},"
+                f" Error: {error}, {repr(nums)}\n"
+            )
 
 
 def write_json(data, file_path):

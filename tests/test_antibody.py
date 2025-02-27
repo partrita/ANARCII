@@ -34,18 +34,3 @@ def test_files_are_identical(anarcii_model, tmp_path):
             content2 = f2.read().strip()
 
         assert content1 == content2, f"Files {expected} and {test} are different!"
-
-
-## FILE GENERATION
-# model = Anarcii(
-#     seq_type="antibody",
-#     batch_size=64,
-#     cpu=False,
-#     ncpu=12,
-#     mode="speed",
-#     verbose=False,
-# )
-# model.number("data/sabdab_filtered.fa")
-
-# model.to_text("data/antibody_expected_1.txt")
-# model.to_json("data/antibody_expected_1.json")

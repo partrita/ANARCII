@@ -51,9 +51,15 @@ def to_text(self, file_path):
                 name = sublist[1].get("query_name", "Unknown")
                 chain = sublist[1].get("chain_type", "Unknown")
                 score = sublist[1].get("score", "Unknown")
+                error = sublist[1].get("error", "Unknown")
+                start = sublist[1].get("query_start", "Unknown")
+                end = sublist[1].get("query_end", "Unknown")
 
                 # Write the processed line to the output file
-                outfile.write(f"{name}, {chain}, {score}, {repr(nums)}\n")
+                outfile.write(
+                    f"{name}, Chain: {chain}, {score}, Start: {start},"
+                    f" End: {end}, Error: {error}, {repr(nums)}\n"
+                )
         print(f"Last output saved to {file_path}")
 
     else:

@@ -10,7 +10,7 @@ def batch_process(ls, model, window_model, verbose, txt_file):
         processed_seqs, offsets = sequences.process_sequences()
 
         # Process and write to the temp file
-        numbered_seqs = model(processed_seqs)
+        numbered_seqs = model(processed_seqs, offsets)
 
         with open(txt_file, "a") as file:
             for item in numbered_seqs:
