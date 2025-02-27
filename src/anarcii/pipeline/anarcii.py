@@ -55,7 +55,7 @@ class Anarcii:
 
         * PDB file - detected and renumbered in-situ, returning file_anarcii.pdb
 
-        * UNKNOWN model - a classifer model Classifii is called on partiallt processed
+        * UNKNOWN model - a classifer model Classifii is called on partially processed
         input seqs. This detects if they are TCRs or Antibodies. Then runs the relevant
         model - returning the mixed list of both types.
 
