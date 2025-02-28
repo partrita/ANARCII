@@ -36,7 +36,19 @@ def to_text(self, file_path):
     if self._last_numbered_output is None:
         raise ValueError("No output to save. Run the model first.")
 
-    if self.max_len_exceed:
+    elif self._last_converted_output and not self.max_len_exceed:
+        write_text(self._last_converted_output, file_path)
+        print(
+            f"Last output saved to {file_path} in alternate scheme: {self._alt_scheme}."
+        )
+
+    elif self._last_converted_output and self.max_len_exceed:
+        raise ValueError(
+            f"Cannot renumber more than {1024 * 100} sequences and convert"
+            " to alternate scheme. Feature update coming soon!"
+        )
+
+    elif self.max_len_exceed:
         # The reads and writes line by line and hence saves RAM
         with open(self.text_) as infile, open(file_path, "w") as outfile:
             for line in infile:
@@ -72,7 +84,19 @@ def to_csv(self, file_path):
     if self._last_numbered_output is None:
         raise ValueError("No output to save. Run the model first.")
 
-    if self.max_len_exceed:
+    elif self._last_converted_output and not self.max_len_exceed:
+        write_csv(self._last_converted_output, file_path)
+        print(
+            f"Last output saved to {file_path} in alternate scheme: {self._alt_scheme}."
+        )
+
+    elif self._last_converted_output and self.max_len_exceed:
+        raise ValueError(
+            f"Cannot renumber more than {1024 * 100} sequences and convert"
+            " to alternate scheme. Feature update coming soon!"
+        )
+
+    elif self.max_len_exceed:
         print(
             "Writing to a aligned CSV file may use a lot of RAM for millions of "
             "sequences, consider to_text(filepath) or to_json(filepath) for memory-"
@@ -94,7 +118,19 @@ def to_json(self, file_path):
     if self._last_numbered_output is None:
         raise ValueError("No output to save. Run the model first.")
 
-    if self.max_len_exceed:
+    elif self._last_converted_output and not self.max_len_exceed:
+        write_json(self._last_converted_output, file_path)
+        print(
+            f"Last output saved to {file_path} in alternate scheme: {self._alt_scheme}."
+        )
+
+    elif self._last_converted_output and self.max_len_exceed:
+        raise ValueError(
+            f"Cannot renumber more than {1024 * 100} sequences and convert"
+            " to alternate scheme. Feature update coming soon!"
+        )
+
+    elif self.max_len_exceed:
         with open(self.text_) as infile, open(file_path, "w") as outfile:
             # Start the JSON array
             outfile.write("[\n")
@@ -129,7 +165,16 @@ def to_dict(self):
     if self._last_numbered_output is None:
         raise ValueError("No output. Run the model first.")
 
-    if self.max_len_exceed:
+    elif self._last_converted_output and not self.max_len_exceed:
+        return_dict(self._last_converted_output)
+
+    elif self._last_converted_output and self.max_len_exceed:
+        raise ValueError(
+            f"Cannot renumber more than {1024 * 100} sequences and convert"
+            " to alternate scheme. Feature update coming soon!"
+        )
+
+    elif self.max_len_exceed:
         with open(self.text_) as file:
             loaded_data = [ast.literal_eval(line.strip()) for line in file]
         dt = return_dict(loaded_data)
@@ -145,7 +190,7 @@ def to_imgt_regions(self):
     if self._last_numbered_output is None:
         raise ValueError("No output. Run the model first.")
 
-    if self.max_len_exceed:
+    elif self.max_len_exceed:
         with open(self.text_) as file:
             loaded_data = [ast.literal_eval(line.strip()) for line in file]
         ls = return_imgt_regions(loaded_data)
