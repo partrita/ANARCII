@@ -82,11 +82,16 @@ class Anarcii:
         self.cpu = cpu
         self.text_ = "output.txt"
         self.max_len_exceed = False
-        self._last_numbered_output = None
+
         self.output_format = output_format.lower()
         self.scfv = scfv_or_concatenated_chains
         self.debug_input = debug_input
         self.unknown = False
+
+        self._last_numbered_output = None
+        # Has a conversion to a new number scheme occured?
+        self._last_converted_output = None
+        self._alt_scheme = None
 
         # Attach methods
         self.print_initial_configuration = print_initial_configuration.__get__(self)
@@ -218,9 +223,22 @@ class Anarcii:
         if self._last_numbered_output is None:
             raise ValueError("No output to convert. Run the model first.")
 
-        converted_seqs = convert_number_scheme(self._last_numbered_output, scheme)
-        print(f"Last output converted to {scheme}")
-        return converted_seqs
+        elif self.max_len_exceed:
+            raise ValueError(
+                f"Cannot renumber more than {1024 * 100} sequences and convert"
+                " to alternate scheme. Feature update coming soon!"
+            )
+        else:
+            converted_seqs = convert_number_scheme(self._last_numbered_output, scheme)
+            print(f"Last output converted to {scheme}")
+
+            # The problem is we cannot write over last numbered output
+            # Instead, the converted scheme is written to a new object
+            # This allows it to be written to json/text/csv
+            self._last_converted_output = converted_seqs
+            self._alt_scheme = scheme
+
+            return converted_seqs
 
     def number_with_type(self, seqs, inner_type, chunk=False):
         if inner_type == "shark":

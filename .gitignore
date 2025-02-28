@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 
 *example_dev*
+/notebook/tmp
+
 
 *gpu*.pt
 

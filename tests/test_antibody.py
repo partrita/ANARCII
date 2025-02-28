@@ -3,7 +3,7 @@ import pytest
 from anarcii import Anarcii
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def anarcii_model():
     model = Anarcii(
         seq_type="antibody",
@@ -18,19 +18,35 @@ def anarcii_model():
     return model
 
 
-def test_files_are_identical(anarcii_model, tmp_path):
-    txt_file = tmp_path / "antibody_test_1.txt"
-    json_file = tmp_path / "antibody_test_1.json"
+@pytest.mark.parametrize(
+    "scheme", ["default", "chothia", "imgt", "martin", "kabat", "aho"]
+)
+def test_files_are_identical(anarcii_model, tmp_path, scheme):
+    expected_file_templates = {
+        "txt": "data/antibody{suffix}_expected_1.txt",
+        "json": "data/antibody{suffix}_expected_1.json",
+    }
 
-    anarcii_model.to_text(tmp_path / txt_file)
-    anarcii_model.to_json(tmp_path / json_file)
+    suffix = "" if scheme == "default" else f"_{scheme}"
 
-    for expected, test in zip(
-        ["data/antibody_expected_1.txt", "data/antibody_expected_1.json"],
-        [txt_file, json_file],
-    ):
-        with open(expected) as f1, open(test) as f2:
+    # Switch scheme if necessary (skip for "default")
+    if scheme != "default":
+        anarcii_model.to_scheme(scheme)
+
+    # Generate and check both text and json files
+    for filetype in ["txt", "json"]:
+        test_file = tmp_path / f"antibody{suffix}_test_1.{filetype}"
+        expected_file = expected_file_templates[filetype].format(suffix=suffix)
+
+        if filetype == "txt":
+            anarcii_model.to_text(test_file)
+        else:
+            anarcii_model.to_json(test_file)
+
+        with open(expected_file) as f1, open(test_file) as f2:
             content1 = f1.read().strip()
             content2 = f2.read().strip()
 
-        assert content1 == content2, f"Files {expected} and {test} are different!"
+        assert content1 == content2, (
+            f"Files {expected_file} and {test_file}" + " are different!"
+        )
