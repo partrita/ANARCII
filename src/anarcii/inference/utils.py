@@ -9,10 +9,6 @@ alphabet = (
     list(string.ascii_uppercase)
     # All upper case letters, doubled.
     + [2 * letter for letter in string.ascii_uppercase]
-    # # A space.
-    + [
-        " "
-    ]  # Cannot get rid of this until you test it does not impact alt number schemes.
 )
 
 # Allowed and forbidden IMGT instertion
