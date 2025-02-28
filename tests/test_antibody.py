@@ -19,50 +19,34 @@ def anarcii_model():
 
 
 def test_files_are_identical(anarcii_model, tmp_path):
-    txt_file = tmp_path / "antibody_test_1.txt"
-    json_file = tmp_path / "antibody_test_1.json"
+    schemes = ["default", "chothia", "imgt", "martin", "kabat", "aho"]
 
-    anarcii_model.to_text(tmp_path / txt_file)
-    anarcii_model.to_json(tmp_path / json_file)
+    expected_file_templates = {
+        "txt": "data/antibody{suffix}_expected_1.txt",
+        "json": "data/antibody{suffix}_expected_1.json",
+    }
 
-    # Alternate number schemes
-    json_chothia_file = tmp_path / "antibody_chothia_test_1.json"
-    anarcii_model.to_scheme("chothia")
-    anarcii_model.to_json(tmp_path / json_chothia_file)
+    for scheme in schemes:
+        suffix = "" if scheme == "default" else f"_{scheme}"
 
-    json_imgt_file = tmp_path / "antibody_imgt_test_1.json"
-    anarcii_model.to_scheme("imgt")
-    anarcii_model.to_json(tmp_path / json_imgt_file)
+        # Switch scheme if necessary (skip for "default")
+        if scheme != "default":
+            anarcii_model.to_scheme(scheme)
 
-    json_martin_file = tmp_path / "antibody_martin_test_1.json"
-    anarcii_model.to_scheme("martin")
-    anarcii_model.to_json(tmp_path / json_martin_file)
+        # Generate and check both text and json files
+        for filetype in ["txt", "json"]:
+            test_file = tmp_path / f"antibody{suffix}_test_1.{filetype}"
+            expected_file = expected_file_templates[filetype].format(suffix=suffix)
 
-    json_kabat_file = tmp_path / "antibody_kabat_test_1.json"
-    anarcii_model.to_scheme("kabat")
-    anarcii_model.to_json(tmp_path / json_kabat_file)
+            if filetype == "txt":
+                anarcii_model.to_text(test_file)
+            else:
+                anarcii_model.to_json(test_file)
 
-    expected_files = [
-        "data/antibody_expected_1.txt",
-        "data/antibody_expected_1.json",
-        "data/antibody_chothia_expected_1.json",
-        "data/antibody_imgt_expected_1.json",
-        "data/antibody_kabat_expected_1.json",
-        "data/antibody_martin_expected_1.json",
-    ]
+            with open(expected_file) as f1, open(test_file) as f2:
+                content1 = f1.read().strip()
+                content2 = f2.read().strip()
 
-    test_files = [
-        txt_file,
-        json_file,
-        json_chothia_file,
-        json_imgt_file,
-        json_kabat_file,
-        json_martin_file,
-    ]
-
-    for expected, test in zip(expected_files, test_files):
-        with open(expected) as f1, open(test) as f2:
-            content1 = f1.read().strip()
-            content2 = f2.read().strip()
-
-        assert content1 == content2, f"Files {expected} and {test} are different!"
+            assert content1 == content2, (
+                f"Files {expected_file} and {test_file}" + " are different!"
+            )

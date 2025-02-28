@@ -16,4 +16,6 @@ model.number("data/sabdab_filtered.fa")
 
 for scheme in ["kabat", "chothia", "martin", "imgt", "aho"]:
     out = model.to_scheme(f"{scheme}")
+
     model.to_json(f"data/antibody_{scheme}_expected_1.json")
+    model.to_text(f"data/antibody_{scheme}_expected_1.txt")
