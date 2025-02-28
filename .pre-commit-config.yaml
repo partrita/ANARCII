@@ -6,6 +6,8 @@ repos:
         exclude: "^tests/data/.*"
       - id: check-yaml
       - id: check-merge-conflict
+      - id: end-of-file-fixer
+        exclude: "^tests/data/.*"
 
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
