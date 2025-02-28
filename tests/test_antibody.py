@@ -3,7 +3,7 @@ import pytest
 from anarcii import Anarcii
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def anarcii_model():
     model = Anarcii(
         seq_type="antibody",
@@ -18,9 +18,10 @@ def anarcii_model():
     return model
 
 
-@pytest.mark.parametrize("scheme", ["default", "chothia", "imgt", "martin", "kabat", "aho"])
-def test_files_are_identical(anarcii_model, tmp_path):
-
+@pytest.mark.parametrize(
+    "scheme", ["default", "chothia", "imgt", "martin", "kabat", "aho"]
+)
+def test_files_are_identical(anarcii_model, tmp_path, scheme):
     expected_file_templates = {
         "txt": "data/antibody{suffix}_expected_1.txt",
         "json": "data/antibody{suffix}_expected_1.json",
