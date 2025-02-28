@@ -12,8 +12,6 @@ def gap_missing(numbering):
     # Gaps placed where a number is not present
     num = [((0, " "), "-")]
     for p, a in numbering:
-        # print(p)
-        # print(a)
         if p[0] > num[-1][0][0] + 1:
             for _i in range(num[-1][0][0] + 1, p[0]):
                 num.append(((_i, " "), "-"))
