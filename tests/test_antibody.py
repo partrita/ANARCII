@@ -18,6 +18,7 @@ def anarcii_model():
     return model
 
 
+@pytest.mark.parametrize("scheme", ["default", "chothia", "imgt", "martin", "kabat", "aho"])
 def test_files_are_identical(anarcii_model, tmp_path):
     schemes = ["default", "chothia", "imgt", "martin", "kabat", "aho"]
 
