@@ -13,15 +13,15 @@ def anarcii_model():
         mode="accuracy",
         verbose=True,
     )
-    model.number("data/window_cwc.fa")
+    model.number("data/raw_data/window_cwc.fa")
 
     return model
 
 
 def test_files_are_identical(anarcii_model, tmp_path):
     expected_file_templates = {
-        "txt": "data/window_expected_1.txt",
-        "json": "data/window_expected_1.json",
+        "txt": "data/expected_data/window_expected_1.txt",
+        "json": "data/expected_data/window_expected_1.json",
     }
 
     # Generate and check both text and json files
