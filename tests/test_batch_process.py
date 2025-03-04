@@ -5,14 +5,14 @@ import pytest
 import anarcii.pipeline.constants
 from anarcii import Anarcii
 
-anarcii.pipeline.constants.max_seqs_len = 20
-
 
 @pytest.fixture(scope="session")
 def anarcii_model():
+    # THIS DOES NOT WORK - FIND A FIX
+    anarcii.pipeline.constants.max_seqs_len = 20
     model = Anarcii(
         seq_type="antibody",
-        batch_size=16,
+        batch_size=20,
         cpu=False,
         ncpu=8,
         mode="speed",

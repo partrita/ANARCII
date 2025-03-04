@@ -321,6 +321,10 @@ class S2S(nn.Module):
         src_mask = self.make_src_mask(src)
         trg_pad_mask, trg_causal_mask = self.make_trg_mask(trg)
 
+        print(f"src_mask.shape = {src_mask.shape}")
+        print(f"trg_pad_mask.shape = {trg_pad_mask.shape}")
+        print(f"trg_causal_mask.shape = {trg_causal_mask.shape}")
+
         enc_src = self.encoder(src, src_mask)
         output = self.decoder(trg, enc_src, trg_pad_mask, trg_causal_mask, src_mask)
 

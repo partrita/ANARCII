@@ -1,13 +1,13 @@
 from anarcii import Anarcii
 
-model = Anarcii(
-    seq_type="antibody",
-    batch_size=128,
-    cpu=False,
-    ncpu=12,
-    mode="speed",
-    verbose=True,
-)
+# model = Anarcii(
+#     seq_type="antibody",
+#     batch_size=128,
+#     cpu=False,
+#     ncpu=16,
+#     mode="speed",
+#     verbose=True,
+# )
 # model.number("../data/sabdab_filtered.fa")
 
 # model.to_text("../data/antibody_expected_1.txt")
@@ -18,6 +18,15 @@ model = Anarcii(
 
 #     model.to_json(f"../data/antibody_{scheme}_expected_1.json")
 #     model.to_text(f"../data/antibody_{scheme}_expected_1.txt")
+
+model = Anarcii(
+    seq_type="antibody",
+    batch_size=20,
+    cpu=False,
+    ncpu=16,
+    mode="speed",
+    verbose=True,
+)
 
 model.number("../data/raw_data/100_seqs.fa")
 
