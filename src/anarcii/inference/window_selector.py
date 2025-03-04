@@ -111,7 +111,7 @@ class WindowFinder:
                     normalized_likelihood = likelihoods[batch_no, 0].item()
                     preds.append(round(normalized_likelihood, 3))
 
-            print(preds)
+            # print(preds)
 
             # find first index over 35
             over_thirty = first_index_above_threshold(preds, 35)

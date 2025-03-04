@@ -150,7 +150,6 @@ class SequenceProcessor:
 
                 if cwc_matches:
                     if len(cwc_matches) > 1:
-                        print(cwc_strings)
                         cwc_winner = pick_window(cwc_inner_strings, self.window_model)
                     else:
                         cwc_winner = 0
