@@ -7,9 +7,21 @@ from .utils import find_scfvs, pick_window, split_seq
 # from anarcii.pipeline.anarcii_constants import n_jump
 
 # A regex pattern to match no more than 200 residues, containing a 'CWC' pattern
-# (cysteine followed by 5–20 residues followed by a tryptophan followed by 50–80
-# residues followed by another cysteine) starting no later than the 41st residue.
-cwc_pattern = re.compile(r".{,40}(?=C.{5,25}W.{50,80}C).{,160}")
+# (cysteine followed by 5–25 residues followed by a tryptophan followed by 50–80
+# residues followed by another cysteine) starting no later than the 41st residue. The
+# match is to the 0–40 residues preceding the CWC pattern, greedily, plus the leading C
+# of the CWC pattern.  The next string of up to 159 residues is captured in a lookahead.
+# This allows matches to overlap, except for the first 1–41 residues.  The desired
+# string of up to 200 residues must be reconstructed by combining the match and the
+# captured group.
+cwc_pattern = re.compile(
+    r"""
+        .{,40}C                 # Match 0–40 residues followed by a C.
+        (?=.{5,25}W.{50,80}C)   # Check that the matched C is part of a CWC pattern.
+        (?=(.{,159}))           # Capture up to 159 residues after the first 1–41.
+    """,
+    re.VERBOSE,
+)
 
 
 class SequenceProcessor:
@@ -130,7 +142,7 @@ class SequenceProcessor:
             for key, sequence in long_seqs.items():
                 # first try a simple regex to look for cwc
                 cwc_matches = list(cwc_pattern.finditer(sequence))
-                cwc_strings = [m.group() for m in cwc_matches]
+                cwc_strings = [m.group(0) + m.group(1) for m in cwc_matches]
 
                 if cwc_matches:
                     if len(cwc_matches) > 1:
