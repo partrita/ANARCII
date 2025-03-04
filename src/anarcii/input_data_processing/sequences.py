@@ -22,6 +22,9 @@ cwc_pattern = re.compile(
     """,
     re.VERBOSE,
 )
+# .{,40}C(?=.{5,25}W.{50,80}C)(?=(.{,159})) # for testing in the webtool.
+
+cwc_inner = re.compile(r"C.{5,25}W.{50,80}C")
 
 
 class SequenceProcessor:
@@ -143,10 +146,12 @@ class SequenceProcessor:
                 # first try a simple regex to look for cwc
                 cwc_matches = list(cwc_pattern.finditer(sequence))
                 cwc_strings = [m.group(0) + m.group(1) for m in cwc_matches]
+                cwc_inner_strings = [cwc_inner.findall(s)[0] for s in cwc_strings]
 
                 if cwc_matches:
                     if len(cwc_matches) > 1:
-                        cwc_winner = pick_window(cwc_strings, self.window_model)
+                        print(cwc_strings)
+                        cwc_winner = pick_window(cwc_inner_strings, self.window_model)
                     else:
                         cwc_winner = 0
 
