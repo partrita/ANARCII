@@ -1,22 +1,20 @@
 import pytest
 
-# Need to manually change the # of seqs exceeded then run on 101 test seqs in batches
-# of 20 (101 seqs should be 6 batches).
-import anarcii.pipeline.constants
 from anarcii import Anarcii
 
 
 @pytest.fixture(scope="session")
 def anarcii_model():
-    # THIS DOES NOT WORK - FIND A FIX
-    anarcii.pipeline.constants.max_seqs_len = 20
     model = Anarcii(
         seq_type="antibody",
-        batch_size=20,
+        batch_size=1,
         cpu=False,
         ncpu=8,
         mode="speed",
         verbose=True,
+        # Need to manually change the # of seqs exceeded then run on 101 test seqs in
+        # batches of 20 (101 seqs should be 6 batches).
+        max_seqs_len=20,
     )
     model.number("data/raw_data/100_seqs.fa")
 

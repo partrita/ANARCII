@@ -21,11 +21,12 @@ from anarcii import Anarcii
 
 model = Anarcii(
     seq_type="antibody",
-    batch_size=20,
+    batch_size=1,
     cpu=False,
     ncpu=16,
     mode="speed",
     verbose=True,
+    max_seqs_len=50,
 )
 
 model.number("../data/raw_data/100_seqs.fa")
