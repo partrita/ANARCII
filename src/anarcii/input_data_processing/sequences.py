@@ -158,7 +158,7 @@ class SequenceProcessor:
                     # Replace the input sequence
                     self.seqs[key] = sequence[start_index:end_index]
 
-            if self.verbose:
+            if long_seqs and self.verbose:
                 print("Max probability windows selected.\n")
 
     def _convert_to_tuple_list(self):
