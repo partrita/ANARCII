@@ -146,7 +146,10 @@ class SequenceProcessor:
                 # first try a simple regex to look for cwc
                 cwc_matches = list(cwc_pattern.finditer(sequence))
                 cwc_strings = [m.group(0) + m.group(1) for m in cwc_matches]
+                # print(cwc_strings)
+
                 cwc_inner_strings = [cwc_inner.findall(s)[0] for s in cwc_strings]
+                # print(cwc_inner_strings)
 
                 if cwc_matches:
                     if len(cwc_matches) > 1:
