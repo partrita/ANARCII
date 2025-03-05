@@ -12,16 +12,19 @@ from .utils import find_scfvs, pick_window, split_seq
 # pattern greedily captures 0–40 residues (labelled 'start') preceding the CWC pattern,
 # then gredily captures the CWC pattern (labelled 'cwc') in a lookahead.  The next
 # string of up to 160 residues (labelled 'end') is also greedily captured in a
-# lookahead.  The search poition is then advanced to the end of the captured CWC
-# pattern, effectively making the CWC search atomic.  This allows matches to overlap,
-# except for the CWC groups.  The desired string of up to 200 residues must be
-# reconstructed by combining the 'start' and 'end' groups.
+# lookahead.  The search poition is then advanced to just before the trailing C of the
+# captured CWC pattern, effectively making the 'C...W...' search atomic.  This allows
+# matches to overlap, except for the 'C...W...' sections of the CWC groups.  The desired
+# string of up to 200 residues must be reconstructed by combining the 'start' and 'end'
+# groups.
 cwc_pattern = re.compile(
     r"""
         (?P<start>.{,40})                # Capture up to 40 residues.
-        (?=(?P<cwc>C.{5,25}W.{50,80}C))  # Zero-width search capturing a CWC pattern.
+        (?=(?P<cwc>                      # Zero-width search capturing a CWC pattern.
+            (?P<atom>C.{5,25}W.{50,80})C # Prepare an atomic match to 'C...W...' of CWC.
+        ))
         (?=(?P<end>.{,160}))             # Zero-width search capturing up to 160 chars.
-        (?P=cwc)                         # Make the CWC match atomic (move to its end).
+        (?P=atom)                        # Move to the terminating C of the matched CWC.
     """,
     re.VERBOSE,
 )
