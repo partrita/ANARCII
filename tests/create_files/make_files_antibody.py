@@ -1,23 +1,23 @@
 from anarcii import Anarcii
 
-# model = Anarcii(
-#     seq_type="antibody",
-#     batch_size=128,
-#     cpu=False,
-#     ncpu=4,
-#     mode="speed",
-#     verbose=True,
-# )
-# model.number("../data/raw_data/sabdab_filtered.fa")
+model = Anarcii(
+    seq_type="antibody",
+    batch_size=128,
+    cpu=False,
+    ncpu=4,
+    mode="speed",
+    verbose=True,
+)
+model.number("../data/raw_data/sabdab_filtered.fa")
 
-# model.to_text("../data/expected_data/antibody_expected_1.txt")
-# model.to_json("../data/expected_data/antibody_expected_1.json")
+model.to_text("../data/expected_data/antibody_expected_1.txt")
+model.to_json("../data/expected_data/antibody_expected_1.json")
 
-# for scheme in ["kabat", "chothia", "martin", "imgt", "aho"]:
-#     out = model.to_scheme(f"{scheme}")
+for scheme in ["kabat", "chothia", "martin", "imgt", "aho"]:
+    out = model.to_scheme(f"{scheme}")
 
-#     model.to_json(f"../data/expected_data/antibody_{scheme}_expected_1.json")
-#     model.to_text(f"../data/expected_data/antibody_{scheme}_expected_1.txt")
+    model.to_json(f"../data/expected_data/antibody_{scheme}_expected_1.json")
+    model.to_text(f"../data/expected_data/antibody_{scheme}_expected_1.txt")
 
 model = Anarcii(
     seq_type="antibody",
