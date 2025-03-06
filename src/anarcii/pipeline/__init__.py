@@ -13,7 +13,6 @@ from anarcii.output_data_processing.schemes import convert_number_scheme
 from anarcii.pdb_process import renumber_pdb_with_anarcii
 from anarcii.pipeline.batch_process import batch_process
 from anarcii.pipeline.configuration import configure_cpus, configure_device
-from anarcii.pipeline.constants import max_seqs_len
 
 # Processing output
 from anarcii.pipeline.methods import (
@@ -73,6 +72,7 @@ class Anarcii:
         output_format: str = "simple",  # legacy for old ANARCI
         verbose: bool = False,
         debug_input=False,
+        max_seqs_len=1024 * 100,
     ):
         # need checks that all adhere before running code.
         self.seq_type = seq_type.lower()
@@ -81,6 +81,7 @@ class Anarcii:
         self.verbose = verbose
         self.cpu = cpu
         self.text_ = "output.txt"
+        self.max_seqs_len = max_seqs_len
         self.max_len_exceed = False
 
         self.output_format = output_format.lower()
@@ -298,15 +299,20 @@ class Anarcii:
                 print("Length of sequence list: ", len(dict_of_seqs))
 
             # If the list is huge - breakup into chunks of 1M.
-            if len(dict_of_seqs) > max_seqs_len or chunk:
-                print(f"\nMax # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
+            if len(dict_of_seqs) > self.max_seqs_len or chunk:
+                print(
+                    "\nMax # of seqs exceeded.",
+                    f"Running chunks of {self.max_seqs_len}.\n",
+                )
 
                 keys = list(dict_of_seqs.keys())  # Convert dictionary keys to a list
                 num_seqs = len(keys)
 
-                num_chunks = (len(dict_of_seqs) // max_seqs_len) + 1
+                num_chunks = (len(dict_of_seqs) // self.max_seqs_len) + 1
                 for i in range(num_chunks):
-                    chunk_keys = keys[i * max_seqs_len : (i + 1) * max_seqs_len]
+                    chunk_keys = keys[
+                        i * self.max_seqs_len : (i + 1) * self.max_seqs_len
+                    ]
                     chunk_list.append({k: dict_of_seqs[k] for k in chunk_keys})
 
                 self.max_len_exceed = True
@@ -320,12 +326,14 @@ class Anarcii:
             if self.verbose:
                 print("Length of sequence list: ", num_seqs)
 
-            if num_seqs > max_seqs_len:
-                print(f"Max # of seqs exceeded. Running chunks of {max_seqs_len}.\n")
-                num_chunks = (num_seqs // max_seqs_len) + 1
+            if num_seqs > self.max_seqs_len:
+                print(
+                    f"Max # of seqs exceeded. Running chunks of {self.max_seqs_len}.\n"
+                )
+                num_chunks = (num_seqs // self.max_seqs_len) + 1
                 for i in range(num_chunks):
                     fastas = read_fasta(seqs, self.verbose)[
-                        i * max_seqs_len : (i + 1) * max_seqs_len
+                        i * self.max_seqs_len : (i + 1) * self.max_seqs_len
                     ]
                     chunk_list.append({t[0]: t[1] for t in fastas})
                 self.max_len_exceed = True

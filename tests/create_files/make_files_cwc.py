@@ -8,7 +8,7 @@ model = Anarcii(
     mode="accuracy",
     verbose=True,
 )
-model.number("../data/window_cwc.fa")
+model.number("../data/raw_data/window_cwc.fa")
 
-model.to_text("../data/window_expected_1.txt")
-model.to_json("../data/window_expected_1.json")
+model.to_text("../data/expected_data/window_expected_1.txt")
+model.to_json("../data/expected_data/window_expected_1.json")

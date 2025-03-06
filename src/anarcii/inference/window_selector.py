@@ -8,14 +8,14 @@ from .model_loader import Loader
 from .utils import dataloader
 
 
-def first_index_above_threshold(preds, threshold=35):
+def first_index_above_threshold(preds, threshold=25):
     for i, val in enumerate(preds):
         if val > threshold:
             return i
     return None
 
 
-def detect_peaks(data, threshold=35, min_distance=50):
+def detect_peaks(data, threshold=25, min_distance=50):
     peaks = []
     peak_values = []
 
@@ -111,24 +111,26 @@ class WindowFinder:
                     normalized_likelihood = likelihoods[batch_no, 0].item()
                     preds.append(round(normalized_likelihood, 3))
 
-            # find first index over 35
-            over_thirty = first_index_above_threshold(preds, 35)
+            # print(preds)
 
-            # if nothing is over 35 then drop the threshold to 30
-            if not over_thirty:
-                over_thirty = first_index_above_threshold(preds, 30)
+            # find first index over 25
+            magic_number = first_index_above_threshold(preds, 25)
+
+            # if nothing is over 25 then drop the threshold to 30
+            if not magic_number:
+                magic_number = first_index_above_threshold(preds, 20)
 
             if self.scfv:
                 indices = detect_peaks(preds)
 
                 if len(indices) > 0:
                     return indices
-                elif over_thirty:
-                    return [over_thirty]
+                elif magic_number:
+                    return [magic_number]
                 else:
                     return [preds.index(max(preds))]
 
-            if over_thirty is not None:
-                return over_thirty
+            if magic_number is not None:
+                return magic_number
             else:
                 return preds.index(max(preds))

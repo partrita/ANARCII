@@ -7,9 +7,27 @@ from .utils import find_scfvs, pick_window, split_seq
 # from anarcii.pipeline.anarcii_constants import n_jump
 
 # A regex pattern to match no more than 200 residues, containing a 'CWC' pattern
-# (cysteine followed by 5–20 residues followed by a tryptophan followed by 50–80
-# residues followed by another cysteine) starting no later than the 41st residue.
-cwc_pattern = re.compile(r".{,40}(?=C.{5,25}W.{50,80}C).{,160}")
+# (cysteine followed by 5–25 residues followed by a tryptophan followed by 50–80
+# residues followed by another cysteine) starting no later than the 41st residue. The
+# pattern greedily captures 0–40 residues (labelled 'start') preceding the CWC pattern,
+# then gredily captures the CWC pattern (labelled 'cwc') in a lookahead.  The next
+# string of up to 160 residues (labelled 'end') is also greedily captured in a
+# lookahead.  The search poition is then advanced to just before the trailing C of the
+# captured CWC pattern, effectively making the 'C...W...' search atomic.  This allows
+# matches to overlap, except for the 'C...W...' sections of the CWC groups.  The desired
+# string of up to 200 residues must be reconstructed by combining the 'start' and 'end'
+# groups.
+cwc_pattern = re.compile(
+    r"""
+        (?P<start>.{,40})                # Capture up to 40 residues.
+        (?=(?P<cwc>                      # Zero-width search capturing a CWC pattern.
+            (?P<atom>C.{5,25}W.{50,80})C # Prepare an atomic match to 'C...W...' of CWC.
+        ))
+        (?=(?P<end>.{,160}))             # Zero-width search capturing up to 160 chars.
+        (?P=atom)                        # Move to the terminating C of the matched CWC.
+    """,
+    re.VERBOSE,
+)
 
 
 class SequenceProcessor:
@@ -130,7 +148,8 @@ class SequenceProcessor:
             for key, sequence in long_seqs.items():
                 # first try a simple regex to look for cwc
                 cwc_matches = list(cwc_pattern.finditer(sequence))
-                cwc_strings = [m.group() for m in cwc_matches]
+                seq_strings = [m.group("start") + m.group("end") for m in cwc_matches]
+                cwc_strings = [m.group("cwc") for m in cwc_matches]
 
                 if cwc_matches:
                     if len(cwc_matches) > 1:
@@ -141,7 +160,7 @@ class SequenceProcessor:
                     # Append the start offset
                     self.offsets[key] = cwc_matches[cwc_winner].start()
                     # Replace the input sequence
-                    self.seqs[key] = cwc_strings[cwc_winner]
+                    self.seqs[key] = seq_strings[cwc_winner]
 
                 else:
                     # If no cwc pattern is found, use the sliding window approach.
@@ -158,7 +177,7 @@ class SequenceProcessor:
                     # Replace the input sequence
                     self.seqs[key] = sequence[start_index:end_index]
 
-            if self.verbose:
+            if long_seqs and self.verbose:
                 print("Max probability windows selected.\n")
 
     def _convert_to_tuple_list(self):

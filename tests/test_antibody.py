@@ -13,7 +13,7 @@ def anarcii_model():
         mode="speed",
         verbose=False,
     )
-    model.number("data/sabdab_filtered.fa")
+    model.number("data/raw_data/sabdab_filtered.fa")
 
     return model
 
@@ -23,8 +23,8 @@ def anarcii_model():
 )
 def test_files_are_identical(anarcii_model, tmp_path, scheme):
     expected_file_templates = {
-        "txt": "data/antibody{suffix}_expected_1.txt",
-        "json": "data/antibody{suffix}_expected_1.json",
+        "txt": "data/expected_data/antibody{suffix}_expected_1.txt",
+        "json": "data/expected_data/antibody{suffix}_expected_1.json",
     }
 
     suffix = "" if scheme == "default" else f"_{scheme}"
