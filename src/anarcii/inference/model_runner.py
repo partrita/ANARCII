@@ -99,6 +99,7 @@ class ModelRunner:
 
         dl = dataloader(self.batch_size, seqs_only)
         numbering, alignment = self._predict_numbering(dl)
+
         numbered_output = format_output(
             indices, names_only, numbering, alignment, offsets
         )
@@ -218,7 +219,13 @@ class ModelRunner:
                     num += 1
                     error_msg = None
 
-                    eos_position = first_eos_positions[batch_no]
+                    # eos_position = first_eos_positions[batch_no]
+
+                    # Code fix here. Ensure that if model has numbered beyond SRC EOS
+                    # Then stop.
+                    eos_position = min(
+                        first_eos_positions[batch_no], src_eos_positions[batch_no] + 1
+                    )
 
                     valid_indices = torch.arange(eos_position, device=self.device)[
                         mask[batch_no, :eos_position]
@@ -401,12 +408,16 @@ class ModelRunner:
                         last_predicted_num = last_num
 
                     ### DEBUG ONLY ###
+                    # if src_tokens[batch_no, eos_position - 1] == "<PAD>":
+                    #     print(src_tokens[batch_no, :])
+                    #     print(pred_tokens[batch_no, :])
+
                     # print(src_tokens[batch_no, eos_position - 1])
                     # print(last_num, last_predicted_num)
                     # print(last_predicted_num != last_num)
 
                     if (
-                        src_tokens[batch_no, eos_position - 1] != "<EOS>"
+                        src_tokens[batch_no, eos_position - 1] not in ["<EOS>", "<PAD>"]
                         and last_predicted_num != last_num
                         and last_predicted_num > 119
                     ):
@@ -517,6 +528,7 @@ class ModelRunner:
                     for missing_num in range(last_num + 1, 129):
                         nums.append((missing_num, " "))
                         residues.append("-")
+                    last_num = int(nums[-1][0])
 
                     ### 6 Populate the meta data dict and append to alignment list
 
