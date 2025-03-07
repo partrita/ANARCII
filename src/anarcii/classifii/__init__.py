@@ -5,7 +5,8 @@ import torch
 import torch.nn.functional as F
 
 from anarcii.classifii import model
-from anarcii.classifii.utils import dataloader, split_types
+from anarcii.classifii.utils import split_types
+from anarcii.inference.utils import dataloader
 from anarcii.input_data_processing.tokeniser import Tokeniser
 
 

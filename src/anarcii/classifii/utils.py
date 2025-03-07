@@ -1,5 +1,5 @@
-import torch.nn.utils.rnn as rnn_utils
-from torch.utils.data import DataLoader
+# import torch.nn.utils.rnn as rnn_utils
+# from torch.utils.data import DataLoader
 
 
 def join_mixed_types(antibodies, tcrs, names):
@@ -19,18 +19,18 @@ def join_mixed_types(antibodies, tcrs, names):
     return joined
 
 
-def floating_pad(list_of_lists, batch_size):
-    X = []
-    for i in range(0, len(list_of_lists), batch_size):
-        chunk = list_of_lists[i : i + batch_size]
-        X += rnn_utils.pad_sequence(chunk, batch_first=True, padding_value=0)
-    return X
+# def floating_pad(list_of_lists, batch_size):
+#     X = []
+#     for i in range(0, len(list_of_lists), batch_size):
+#         chunk = list_of_lists[i : i + batch_size]
+#         X += rnn_utils.pad_sequence(chunk, batch_first=True, padding_value=0)
+#     return X
 
 
-def dataloader(batch_size, ls):
-    padded = floating_pad(ls, batch_size)
-    dldr = DataLoader(padded, batch_size=batch_size, shuffle=False)
-    return dldr
+# def dataloader(batch_size, ls):
+#     padded = floating_pad(ls, batch_size)
+#     dldr = DataLoader(padded, batch_size=batch_size, shuffle=False)
+#     return dldr
 
 
 def split_types(seqs, classes):
