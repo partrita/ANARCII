@@ -85,12 +85,12 @@ class WindowFinder:
         model_loader = Loader(self.type, self.mode, self.device)
         return model_loader.model
 
-    def __call__(self, list_of_seqs):
+    def __call__(self, list_of_seqs, cwc_mode):
         dl = dataloader(self.batch_size, list_of_seqs)
-        predictions = self._predict_numbering(dl)
+        predictions = self._predict_numbering(dl, cwc_mode)
         return predictions
 
-    def _predict_numbering(self, dl):
+    def _predict_numbering(self, dl, cwc_mode):
         preds = []
         with torch.no_grad():
             for X in dl:
@@ -111,15 +111,15 @@ class WindowFinder:
                     normalized_likelihood = likelihoods[batch_no, 0].item()
                     preds.append(round(normalized_likelihood, 3))
 
-            # print(preds)
+            # if cwc_mode:
+            #     print(preds)
 
             # find first index over 25
             magic_number = first_index_above_threshold(preds, 25)
 
-            # may comment this out.....................................................
-            # if nothing is over 25 then drop the threshold to 30
+            # if nothing is over 25 then drop the threshold to 15 - next best.
             if not magic_number:
-                magic_number = first_index_above_threshold(preds, 20)
+                magic_number = first_index_above_threshold(preds, 15)
 
             if self.scfv:
                 indices = detect_peaks(preds)
@@ -132,7 +132,9 @@ class WindowFinder:
 
             if magic_number is not None:
                 return magic_number
-            else:
-                # Return a fail here instead...........................................
+            elif cwc_mode and magic_number is None:
                 # In CWC mode do not want to return the max index if it is garbage...
+                return magic_number
+            elif not cwc_mode:
+                # Must be in window mode, the return max scoring window....
                 return preds.index(max(preds))

@@ -5,7 +5,7 @@ model = Anarcii(
     batch_size=128,
     cpu=False,
     ncpu=4,
-    mode="speed",
+    mode="accuracy",
     verbose=True,
 )
 model.number("../data/raw_data/unknown.fa")

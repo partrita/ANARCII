@@ -6,7 +6,12 @@ from anarcii import Anarcii
 @pytest.fixture(scope="session")
 def anarcii_model():
     model = Anarcii(
-        seq_type="unknown", batch_size=64, cpu=False, ncpu=8, mode="speed", verbose=True
+        seq_type="unknown",
+        batch_size=64,
+        cpu=False,
+        ncpu=8,
+        mode="accuracy",
+        verbose=True,
     )
     model.number("data/raw_data/unknown.fa")
 

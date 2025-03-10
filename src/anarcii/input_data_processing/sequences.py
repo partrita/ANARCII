@@ -150,22 +150,32 @@ class SequenceProcessor:
                 seq_strings = [m.group("start") + m.group("end") for m in cwc_matches]
                 cwc_strings = [m.group("cwc") for m in cwc_matches]
 
-                if cwc_matches:
-                    if len(cwc_matches) > 1:
-                        cwc_winner = pick_window(cwc_strings, self.window_model)
+                if len(cwc_matches) > 0:
+                    # Output the integer index of a high scoring window
+                    cwc_winner = pick_window(
+                        cwc_strings, self.window_model, cwc_mode=True
+                    )
+
+                    if cwc_winner:
+                        # Append the start offset
+                        self.offsets[key] = cwc_matches[cwc_winner].start()
+                        # Replace the input sequence
+                        self.seqs[key] = seq_strings[cwc_winner]
+                        # print(seq_strings[cwc_winner])
                     else:
-                        cwc_winner = 0
-
-                    # Append the start offset
-                    self.offsets[key] = cwc_matches[cwc_winner].start()
-                    # Replace the input sequence
-                    self.seqs[key] = seq_strings[cwc_winner]
-
+                        cwc_matches = None
                 else:
+                    cwc_matches = None
+
+                # No CWC match found proceed to window
+                if cwc_matches is None:
                     # If no cwc pattern is found, use the sliding window approach.
                     # Split the sequence into 90-residue chunks and pick the best.
                     windows = split_seq(sequence, n_jump=n_jump)
-                    best_window = pick_window(windows, model=self.window_model)
+
+                    best_window = pick_window(
+                        windows, model=self.window_model, cwc_mode=False
+                    )
 
                     # Ensures start_index is at least 0.
                     start_index = max((best_window * n_jump) - 40, 0)

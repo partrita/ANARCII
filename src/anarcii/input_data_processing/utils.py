@@ -8,7 +8,7 @@ def split_seq(seq, n_jump, window_size=90):
     return ls
 
 
-def pick_window(list_of_seqs, model):
+def pick_window(list_of_seqs, model, cwc_mode):
     # Find the index of the highest scoring window
     aa = model.sequence_tokeniser
     ls = []
@@ -22,7 +22,7 @@ def pick_window(list_of_seqs, model):
             print(f"Sequence could not be numbered. Contains an invalid residue: {e}")
             ls.append([])
 
-    max_index = model(ls)
+    max_index = model(ls, cwc_mode)
     return max_index
 
 
