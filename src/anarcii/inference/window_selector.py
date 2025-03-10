@@ -116,13 +116,13 @@ class WindowFinder:
             # find first index over 25
             magic_number = first_index_above_threshold(preds, 25)
 
+            # may comment this out.....................................................
             # if nothing is over 25 then drop the threshold to 30
             if not magic_number:
                 magic_number = first_index_above_threshold(preds, 20)
 
             if self.scfv:
                 indices = detect_peaks(preds)
-
                 if len(indices) > 0:
                     return indices
                 elif magic_number:
@@ -133,4 +133,6 @@ class WindowFinder:
             if magic_number is not None:
                 return magic_number
             else:
+                # Return a fail here instead...........................................
+                # In CWC mode do not want to return the max index if it is garbage...
                 return preds.index(max(preds))

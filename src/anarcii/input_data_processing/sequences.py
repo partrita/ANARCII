@@ -135,7 +135,6 @@ class SequenceProcessor:
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]
         else:
-            # larger n_jump to reduce time.
             n_jump = 3
             long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
 
