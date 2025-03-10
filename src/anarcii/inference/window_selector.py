@@ -87,10 +87,6 @@ class WindowFinder:
 
     def __call__(self, list_of_seqs, fallback):
         dl = dataloader(self.batch_size, list_of_seqs)
-        predictions = self._predict_numbering(dl, fallback)
-        return predictions
-
-    def _predict_numbering(self, dl, fallback):
         preds = []
         with torch.no_grad():
             for X in dl:
