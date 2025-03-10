@@ -1,5 +1,7 @@
 import torch
 
+from anarcii.inference.window_selector import WindowFinder
+
 
 def split_seq(seq, n_jump, window_size=90):
     jump = n_jump
@@ -8,7 +10,7 @@ def split_seq(seq, n_jump, window_size=90):
     return ls
 
 
-def pick_window(list_of_seqs, model, cwc_mode):
+def pick_window(list_of_seqs, model: WindowFinder, cwc_mode):
     # Find the index of the highest scoring window
     aa = model.sequence_tokeniser
     ls = []

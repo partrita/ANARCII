@@ -132,9 +132,6 @@ class WindowFinder:
 
             if magic_number is not None:
                 return magic_number
-            elif cwc_mode and magic_number is None:
-                # In CWC mode do not want to return the max index if it is garbage...
-                return magic_number
-            elif not cwc_mode:
+            else:
                 # Must be in window mode, the return max scoring window....
-                return preds.index(max(preds))
+                return preds.index(max(preds)) if not cwc_mode else None
