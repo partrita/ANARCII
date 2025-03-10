@@ -152,9 +152,7 @@ class SequenceProcessor:
 
                 if cwc_matches:
                     # Output the integer index of a high scoring window
-                    cwc_winner = pick_window(
-                        cwc_strings, self.window_model, cwc_mode=True
-                    )
+                    cwc_winner = pick_window(cwc_strings, self.window_model)
 
                     if cwc_winner is not None:
                         # Append the start offset
@@ -170,7 +168,7 @@ class SequenceProcessor:
                 windows = split_seq(sequence, n_jump=n_jump)
 
                 best_window = pick_window(
-                    windows, model=self.window_model, cwc_mode=False
+                    windows, model=self.window_model, fallback=True
                 )
 
                 # Ensures start_index is at least 0.

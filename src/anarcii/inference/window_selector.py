@@ -85,12 +85,12 @@ class WindowFinder:
         model_loader = Loader(self.type, self.mode, self.device)
         return model_loader.model
 
-    def __call__(self, list_of_seqs, cwc_mode):
+    def __call__(self, list_of_seqs, fallback):
         dl = dataloader(self.batch_size, list_of_seqs)
-        predictions = self._predict_numbering(dl, cwc_mode)
+        predictions = self._predict_numbering(dl, fallback)
         return predictions
 
-    def _predict_numbering(self, dl, cwc_mode):
+    def _predict_numbering(self, dl, fallback):
         preds = []
         with torch.no_grad():
             for X in dl:
@@ -111,7 +111,7 @@ class WindowFinder:
                     normalized_likelihood = likelihoods[batch_no, 0].item()
                     preds.append(round(normalized_likelihood, 3))
 
-            # if cwc_mode:
+            # if fallback:
             #     print(preds)
 
             # find first index over 25
@@ -134,4 +134,4 @@ class WindowFinder:
                 return magic_number
             else:
                 # Must be in window mode, the return max scoring window....
-                return preds.index(max(preds)) if not cwc_mode else None
+                return preds.index(max(preds)) if fallback else None
