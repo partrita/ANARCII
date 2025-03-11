@@ -16,6 +16,9 @@ def renumber_pdb_with_anarcii(
     """
     from anarcii import Anarcii
 
+    # If unknown mode is set there then the sequences will be passed as a list to the
+    # inner model and unknown mode can be run.
+
     inner_model = Anarcii(
         seq_type=inner_seq_type,
         mode=inner_mode,
@@ -84,7 +87,7 @@ def renumber_pdb_with_anarcii(
                     print(
                         "PDB chain: ",
                         chain_id,
-                        "Failed, missing conserved residues. Score: ",
+                        "Failed, low score and missing conserved residues. Score: ",
                         score,
                     )
                     print(len(sequence), sequence)
@@ -101,7 +104,7 @@ def renumber_pdb_with_anarcii(
                         "ANARCII Chain (Score): ",
                         chain_call,
                         f"({score})",
-                        " CHECK FOR TCR!",
+                        " Low score with conserved - check the sequence!",
                     )
                     print(len(sequence), sequence)
 
