@@ -88,7 +88,7 @@ class WindowFinder:
     def __call__(self, list_of_seqs, fallback: bool = False):
         """
         Select the highest-scoring sequence.
-        
+
         list_of_seqs: Sequences from which to select the highest scoring above a
                       threshold score.
         fallback:     If `True` and no sequence scores above the threshold for
@@ -117,8 +117,7 @@ class WindowFinder:
                     normalized_likelihood = likelihoods[batch_no, 0].item()
                     preds.append(round(normalized_likelihood, 3))
 
-            # if fallback:
-            #     print(preds)
+            # print(preds)
 
             # find first index over 25
             magic_number = first_index_above_threshold(preds, 25)
