@@ -131,7 +131,7 @@ class Anarcii:
             "tcr", self.mode, self.batch_size, self.device, self.scfv
         )
 
-    def number(self, seqs):
+    def number(self, seqs, pdb_path=None):
         if self.seq_type.lower() == "unknown" and not (
             ".pdb" in seqs or ".mmcif" in seqs
         ):
@@ -162,7 +162,7 @@ class Anarcii:
                     "Input is not a list of sequences, nor a valid path to a fasta file"
                     "(must end in .fa or .fasta), nor a pdb file (.pdb)."
                 )
-                return []
+                return
 
             list_of_tuples_pre_classifii = list(dict_of_seqs.items())
             list_of_names = list(dict_of_seqs.keys())
@@ -201,7 +201,9 @@ class Anarcii:
         # They will be classified into ab/tcrs by an inner model which takes a list of
         #  seqs read from a PDB file (these can now pass through the Classifii code).
         else:
-            self._last_numbered_output = self.number_with_type(seqs, self.seq_type)
+            self._last_numbered_output = self.number_with_type(
+                seqs, self.seq_type, pdb_path=pdb_path
+            )
             return convert_output(
                 ls=self._last_numbered_output,
                 format=self.output_format,
@@ -230,7 +232,7 @@ class Anarcii:
 
             return converted_seqs
 
-    def number_with_type(self, seqs, inner_type, chunk=False):
+    def number_with_type(self, seqs, inner_type, chunk=False, pdb_path=None):
         if inner_type == "shark":
             model = self.shark_model
             window_model = self.shark_window
@@ -345,6 +347,7 @@ class Anarcii:
                 inner_mode=self.mode,
                 inner_batch_size=self.batch_size,
                 inner_cpu=self.cpu,
+                pdb_path=pdb_path,
             )
             return numbered_chains
 
