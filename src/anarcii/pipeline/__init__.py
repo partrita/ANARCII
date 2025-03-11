@@ -199,7 +199,7 @@ class Anarcii:
 
         # PDB files can be run directly, bypassing classifii at this stage.
         # They will be classified into ab/tcrs by an inner model which takes a list of
-        #  seqs harvested safely from a PDB file.
+        #  seqs read from a PDB file (these can now pass through the Classifii code).
         else:
             self._last_numbered_output = self.number_with_type(seqs, self.seq_type)
             return convert_output(
@@ -337,7 +337,7 @@ class Anarcii:
             and os.path.exists(seqs)
             and (".pdb" in seqs or ".mmcif" in seqs)
         ):
-            # Unknown mode is taken care of here. Do not worry about passing
+            # Unknown mode is taken care of here. Do not worry about passing classifii.
             print(f"Renumbering a PDB/mmCIF file in {self.seq_type} mode")
             numbered_chains = renumber_pdb_with_anarcii(
                 seqs,

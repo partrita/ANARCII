@@ -16,8 +16,9 @@ def renumber_pdb_with_anarcii(
     """
     from anarcii import Anarcii
 
-    # If unknown mode is set there then the sequences will be passed as a list to the
-    # inner model and unknown mode can be run.
+    # The sequences will be passed as a list to the inner model.
+    # This means that unknown mode can be run successfully and Classifii is bypassed
+    # at the earlier stage in the pipeline __init__.py code.
 
     inner_model = Anarcii(
         seq_type=inner_seq_type,
