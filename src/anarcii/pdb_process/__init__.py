@@ -7,7 +7,6 @@ def renumber_pdb_with_anarcii(
     inner_mode: str = "accuracy",
     inner_batch_size: int = 4,
     inner_cpu: bool = False,
-    pdb_path: str = None,
 ):
     """
     Renumber PDB files
@@ -29,11 +28,7 @@ def renumber_pdb_with_anarcii(
         verbose=False,
     )
 
-    if pdb_path:
-        out_name = pdb_path
-    else:
-        out_name = file_path.replace(".pdb", "_anarcii.pdb")
-
+    out_name = file_path.replace(".pdb", "_anarcii.pdb")
     try:
         sequences = {}
         with open(file_path) as pdb_file:
