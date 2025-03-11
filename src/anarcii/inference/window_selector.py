@@ -85,12 +85,18 @@ class WindowFinder:
         model_loader = Loader(self.type, self.mode, self.device)
         return model_loader.model
 
-    def __call__(self, list_of_seqs):
-        dl = dataloader(self.batch_size, list_of_seqs)
-        predictions = self._predict_numbering(dl)
-        return predictions
+    def __call__(self, list_of_seqs, fallback: bool = False):
+        """
+        Select the highest-scoring sequence.
+        
+        list_of_seqs: Sequences from which to select the highest scoring above a
+                      threshold score.
+        fallback:     If `True` and no sequence scores above the threshold for
+                      selection, return the highest-scoring sequence anyway.  Otherwise,
+                      return `None`.
 
-    def _predict_numbering(self, dl):
+        """
+        dl = dataloader(self.batch_size, list_of_seqs)
         preds = []
         with torch.no_grad():
             for X in dl:
@@ -111,18 +117,18 @@ class WindowFinder:
                     normalized_likelihood = likelihoods[batch_no, 0].item()
                     preds.append(round(normalized_likelihood, 3))
 
-            # print(preds)
+            # if fallback:
+            #     print(preds)
 
             # find first index over 25
             magic_number = first_index_above_threshold(preds, 25)
 
-            # if nothing is over 25 then drop the threshold to 30
+            # if nothing is over 25 then drop the threshold to 15 - next best.
             if not magic_number:
-                magic_number = first_index_above_threshold(preds, 20)
+                magic_number = first_index_above_threshold(preds, 15)
 
             if self.scfv:
                 indices = detect_peaks(preds)
-
                 if len(indices) > 0:
                     return indices
                 elif magic_number:
@@ -133,4 +139,5 @@ class WindowFinder:
             if magic_number is not None:
                 return magic_number
             else:
-                return preds.index(max(preds))
+                # Must be in window mode, the return max scoring window....
+                return preds.index(max(preds)) if fallback else None

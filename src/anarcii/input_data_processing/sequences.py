@@ -135,7 +135,6 @@ class SequenceProcessor:
                     # Slice the sequence
                     self.seqs[key] = long_seqs[key][start_index:end_index]
         else:
-            # larger n_jump to reduce time.
             n_jump = 3
             long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
 
@@ -152,30 +151,34 @@ class SequenceProcessor:
                 cwc_strings = [m.group("cwc") for m in cwc_matches]
 
                 if cwc_matches:
-                    if len(cwc_matches) > 1:
-                        cwc_winner = pick_window(cwc_strings, self.window_model)
-                    else:
-                        cwc_winner = 0
+                    # Output the integer index of a high scoring window
+                    cwc_winner = pick_window(cwc_strings, self.window_model)
 
-                    # Append the start offset
-                    self.offsets[key] = cwc_matches[cwc_winner].start()
-                    # Replace the input sequence
-                    self.seqs[key] = seq_strings[cwc_winner]
+                    if cwc_winner is not None:
+                        # Append the start offset
+                        self.offsets[key] = cwc_matches[cwc_winner].start()
+                        # Replace the input sequence
+                        self.seqs[key] = seq_strings[cwc_winner]
+                        # print(seq_strings[cwc_winner])
+                        continue
 
-                else:
-                    # If no cwc pattern is found, use the sliding window approach.
-                    # Split the sequence into 90-residue chunks and pick the best.
-                    windows = split_seq(sequence, n_jump=n_jump)
-                    best_window = pick_window(windows, model=self.window_model)
+                # No CWC match found proceed to window
+                # If no cwc pattern is found, use the sliding window approach.
+                # Split the sequence into 90-residue chunks and pick the best.
+                windows = split_seq(sequence, n_jump=n_jump)
 
-                    # Ensures start_index is at least 0.
-                    start_index = max((best_window * n_jump) - 40, 0)
-                    end_index = (best_window * n_jump) + 160
+                best_window = pick_window(
+                    windows, model=self.window_model, fallback=True
+                )
 
-                    # Append the start offset
-                    self.offsets[key] = start_index
-                    # Replace the input sequence
-                    self.seqs[key] = sequence[start_index:end_index]
+                # Ensures start_index is at least 0.
+                start_index = max((best_window * n_jump) - 40, 0)
+                end_index = (best_window * n_jump) + 160
+
+                # Append the start offset
+                self.offsets[key] = start_index
+                # Replace the input sequence
+                self.seqs[key] = sequence[start_index:end_index]
 
             if long_seqs and self.verbose:
                 print("Max probability windows selected.\n")

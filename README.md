@@ -11,7 +11,6 @@ Internal version of ANARCII package for antibody group.
 
 conda install numpy
 conda install pandas
-conda install matplotlib
 conda install pytorch cpuonly -c pytorch
 
 cd ANARCII-DEV
@@ -28,7 +27,6 @@ pip install .
 
 conda install numpy
 conda install pandas
-conda install matplotlib
 conda install pytorch pytorch-cuda=11.8 -c pytorch -c nvidia
 
 cd ANARCII-DEV
