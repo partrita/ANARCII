@@ -135,7 +135,6 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
         regions=_regions, scheme_name=scheme_name, chain_type=chain_type
     )
 
-
     # ### Debug only ###
     # for x, _y in zip(_regions, _letters):
     #     result = " ".join(

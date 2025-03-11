@@ -88,7 +88,7 @@ class WindowFinder:
     def __call__(self, list_of_seqs, fallback: bool = False):
         """
         Select the highest-scoring sequence.
-        
+
         list_of_seqs: Sequences from which to select the highest scoring above a
                       threshold score.
         fallback:     If `True` and no sequence scores above the threshold for
