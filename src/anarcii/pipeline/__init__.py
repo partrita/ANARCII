@@ -197,16 +197,9 @@ class Anarcii:
                 verbose=self.verbose,
             )
 
-        # Running PDB in Unknown mode.
-        elif self.seq_type.lower() == "unknown" and (
-            ".pdb" in seqs or ".mmcif" in seqs
-        ):
-            # Just pass the PDB file in standard antibody mode the PDB is detected and
-            # treated separately.
-            # Sequences are run through in unknown mode by an inner model.
-            self._last_numbered_output = self.number_with_type(seqs, "antibody")
-            return
-
+        # PDB files can be run directly, bypassing classifii at this stage.
+        # They will be classified into ab/tcrs by an inner model which takes a list of
+        #  seqs harvested safely from a PDB file.
         else:
             self._last_numbered_output = self.number_with_type(seqs, self.seq_type)
             return convert_output(
