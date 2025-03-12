@@ -1,4 +1,5 @@
 import contextlib
+import filecmp
 import pathlib
 import shutil
 import sys
@@ -65,10 +66,6 @@ def test_files_are_identical(pytestconfig, anarcii_model, filename):
     expected_file = expected_data / filename
     test_file = anarcii_model / filename
 
-    with open(expected_file) as f1, open(test_file) as f2:
-        expected_content = f1.read().strip()
-        test_content = f2.read().strip()
-
-    assert expected_content == test_content, (
+    assert filecmp.cmp(expected_file, test_file, shallow=False), (
         f"Files {expected_file} and {test_file} are different!"
     )
