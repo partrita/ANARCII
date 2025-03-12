@@ -4,7 +4,7 @@ from anarcii import Anarcii
 
 
 @pytest.fixture(scope="session")
-def anarcii_model():
+def anarcii_model(pytestconfig):
     model = Anarcii(
         seq_type="antibody",
         batch_size=1,
@@ -16,15 +16,23 @@ def anarcii_model():
         # batches of 20 (101 seqs should be 6 batches).
         max_seqs_len=20,
     )
-    model.number("data/raw_data/100_seqs.fa")
+
+    seqs = pytestconfig.rootdir / "tests" / "data" / "raw_data" / "100_seqs.fa"
+
+    # Seqs must be converted to a str fro some reason...
+    model.number(str(seqs))
 
     return model
 
 
-def test_files_are_identical(anarcii_model, tmp_path):
+def test_files_are_identical(anarcii_model, tmp_path, pytestconfig):
     expected_file_templates = {
-        "txt": "data/expected_data/batch_expected_1.txt",
-        "json": "data/expected_data/batch_expected_1.json",
+        "txt": (
+            pytestconfig.rootdir / "tests" / "data/expected_data/batch_expected_1.txt"
+        ),
+        "json": (
+            pytestconfig.rootdir / "tests" / "data/expected_data/batch_expected_1.json"
+        ),
     }
 
     # Generate and check both text and json files
