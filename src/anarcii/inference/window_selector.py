@@ -117,8 +117,7 @@ class WindowFinder:
                     normalized_likelihood = likelihoods[batch_no, 0].item()
                     preds.append(round(normalized_likelihood, 3))
 
-            # if fallback:
-            #     print(preds)
+            # print(preds)
 
             # find first index over 25
             magic_number = first_index_above_threshold(preds, 25)

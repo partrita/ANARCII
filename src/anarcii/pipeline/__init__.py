@@ -157,15 +157,12 @@ class Anarcii:
                 fastas = read_fasta(seqs, self.verbose)
                 dict_of_seqs = {t[0]: t[1] for t in fastas}
 
-            elif (
-                isinstance(seqs, str)
-                and os.path.exists(seqs)
-                and (".pdb" in seqs or ".mmcif" in seqs)
-            ):
+            else:
                 print(
-                    "Renumbering of a PDB file does not currently work in unknown mode."
+                    "Input is not a list of sequences, nor a valid path to a fasta file"
+                    "(must end in .fa or .fasta), nor a pdb file (.pdb)."
                 )
-                return
+                return []
 
             list_of_tuples_pre_classifii = list(dict_of_seqs.items())
             list_of_names = list(dict_of_seqs.keys())
@@ -200,17 +197,9 @@ class Anarcii:
                 verbose=self.verbose,
             )
 
-        elif self.seq_type.lower() == "unknown" and (
-            ".pdb" in seqs or ".mmcif" in seqs
-        ):
-            # This does not matter as the function is run within so set to antibody
-            self._last_numbered_output = self.number_with_type(seqs, "antibody")
-            return convert_output(
-                ls=self._last_numbered_output,
-                format=self.output_format,
-                verbose=self.verbose,
-            )
-
+        # PDB files can be run directly, bypassing classifii at this stage.
+        # They will be classified into ab/tcrs by an inner model which takes a list of
+        #  seqs read from a PDB file (these can now pass through the Classifii code).
         else:
             self._last_numbered_output = self.number_with_type(seqs, self.seq_type)
             return convert_output(
@@ -342,12 +331,14 @@ class Anarcii:
                 fastas = read_fasta(seqs, self.verbose)
                 dict_of_seqs = {t[0]: t[1] for t in fastas}
 
+        # PDB files
         elif (
             isinstance(seqs, str)
             and os.path.exists(seqs)
             and (".pdb" in seqs or ".mmcif" in seqs)
         ):
-            # This makes an infinite loop if unknown >>> Need to separate it out.
+            # Unknown mode is taken care of here. Do not worry about passing classifii.
+            print(f"Renumbering a PDB/mmCIF file in {self.seq_type} mode")
             numbered_chains = renumber_pdb_with_anarcii(
                 seqs,
                 inner_seq_type=self.seq_type,
