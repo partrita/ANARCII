@@ -7,9 +7,9 @@ https://github.com/ALGW71/ANARCII-DEV/wiki
 
 
 ## Citing this work 
-ANARCII code in is based on the following paper: 
+All code is based on the following paper: 
 
-#### "ANARCII – A Generalised Language Model for Antigen Receptor Numbering" 
+*ANARCII – A Generalised Language Model for Antigen Receptor Numbering*
 
 If you use it, please cite:
 
