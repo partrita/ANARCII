@@ -3,7 +3,11 @@
 For the user guide please read the Wiki page: https://github.com/ALGW71/ANARCII-DEV/wiki
 
 
-If using this tool please cite:
+
+## Citing this work 
+ANARCII code in is based on the following paper: "ANARCII – A Generalised Language Model for Antigen Receptor Numbering" 
+
+If you use it, please cite:
 
 ```
 Greenshields-Watson et al. 2025
