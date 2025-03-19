@@ -66,12 +66,11 @@ class Anarcii:
         mode: str = "accuracy",
         # For use with SCFVs or artificial constructs:
         scfv_or_concatenated_chains: bool = False,
-        batch_size: int = 8,
+        batch_size: int = 32,
         cpu: bool = False,
         ncpu: int = -1,
         output_format: str = "simple",  # legacy for old ANARCI
         verbose: bool = False,
-        debug_input=False,
         max_seqs_len=1024 * 100,
     ):
         # need checks that all adhere before running code.
@@ -86,7 +85,6 @@ class Anarcii:
 
         self.output_format = output_format.lower()
         self.scfv = scfv_or_concatenated_chains
-        self.debug_input = debug_input
         self.unknown = False
 
         self._last_numbered_output = None
@@ -239,7 +237,7 @@ class Anarcii:
             window_model = self.ig_window
         elif inner_type == "tcr":
             model = self.tcr_model
-            window_model = self.ig_window
+            window_model = self.tcr_window
         else:
             print("Error in defining sequence type to number.")
 
@@ -390,9 +388,5 @@ class Anarcii:
 
             if self.verbose:
                 print(f"Numbered {len(numbered_seqs)} seqs in {runtime} mins. \n")
-
-            if self.debug_input:
-                print("Printing list of input seqs.")
-                print(dict_of_seqs)
 
             return numbered_seqs
