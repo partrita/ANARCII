@@ -483,8 +483,10 @@ class ModelRunner:
                         last_num = int(nums[-1][0])  # get last number
                     except (IndexError, ValueError) as e:
                         # When numbering has failed, `nums` is an empty list.
-                        # When the sequences are messed up, the first number can
-                        # be a string, like an EOS or an X token.
+                        # For some non-antibody/TCR sequences that the model does not
+                        # recognise, the first number can be a string, like an EOS or
+                        # an X token. End the loop here and move on to the next seq
+                        # in the batch.
                         captured_error = str(e)
                         numbering.append(None)
                         alignment.append(
