@@ -239,7 +239,7 @@ class Anarcii:
             window_model = self.ig_window
         elif inner_type == "tcr":
             model = self.tcr_model
-            window_model = self.ig_window
+            window_model = self.tcr_window
         else:
             print("Error in defining sequence type to number.")
 
