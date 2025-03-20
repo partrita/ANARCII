@@ -296,7 +296,11 @@ class Anarcii:
                 dict_of_seqs = {t[0]: t[1] for t in fastas}
 
         # PDB files
-        elif isinstance(seqs, str) and (".pdb" in seqs or ".mmcif" in seqs):
+        elif (
+            isinstance(seqs, str)
+            and os.path.exists(seqs)
+            and (".pdb" in seqs or ".mmcif" in seqs)
+        ):
             # Unknown mode is taken care of here. Do not worry about passing classifii.
             print(f"Renumbering a PDB/mmCIF file in {self.seq_type} mode")
             numbered_chains = renumber_pdb_with_anarcii(
