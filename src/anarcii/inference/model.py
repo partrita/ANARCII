@@ -125,7 +125,13 @@ class DecoderMultiHeadAttentionLayer(nn.Module):
         self.device = device
         self.to(device)
 
-    def forward(self, query, key, value, trg_pad_mask, trg_causal_mask):
+    def forward(self, query, key, value, trg_pad_mask, trg_causal_mask, past_key_value):
+        if past_key_value is not None:
+            past_key, past_value = past_key_value
+            # Concatenate along the sequence length dimension (dim=1)
+            key = torch.cat([past_key, key], dim=1)
+            value = torch.cat([past_value, value], dim=1)
+
         # Forward pass through the built-in MultiheadAttention layer
         attn_output, attn_output_weights = self.multihead_attn(
             query,
@@ -133,9 +139,12 @@ class DecoderMultiHeadAttentionLayer(nn.Module):
             value,
             key_padding_mask=trg_pad_mask,
             attn_mask=trg_causal_mask,
-            is_causal=True,
+            is_causal=True,  # add this if supported
         )
-        return attn_output, attn_output_weights
+
+        # Update the cache with the new key/value (now including history)
+        new_key_value = (key, value)
+        return attn_output, attn_output_weights, new_key_value
 
 
 class PositionwiseFeedforwardLayer(nn.Module):
@@ -177,36 +186,50 @@ class DecoderLayer(nn.Module):
         )
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, trg, enc_src, trg_pad_mask, trg_causal_mask, src_mask):
-        # trg = [batch size, trg len, hid dim]
-        # enc_src = [batch size, src len, hid dim]
+    def forward(
+        self,
+        trg,
+        enc_src,
+        trg_pad_mask,
+        trg_causal_mask,
+        src_mask,
+        self_attn_cache=None,
+    ):
+        if self_attn_cache is not None:
+            # Number of tokens already cached
+            cached_length = self_attn_cache[0].shape[1]
+            # Number of new tokens (typically 1 during inference)
+            new_length = trg.shape[1]  # usually 1
+            total_length = cached_length + new_length
 
-        # src_mask = [batch size, 1, 1, src len]
+            # Create a full causal mask for the concatenated sequence:
+            full_causal_mask = ~torch.tril(
+                torch.ones((total_length, total_length), device=trg.device)
+            ).bool()
 
-        # self attention
-        _trg, _ = self.self_attention(trg, trg, trg, trg_pad_mask, trg_causal_mask)
+            # Slice out the rows for the new tokens: shape [new_length, total_length]
+            trg_causal_mask = full_causal_mask[
+                cached_length : cached_length + new_length, :
+            ]
+        else:
+            trg_len = trg.shape[1]
+            trg_causal_mask = ~torch.tril(
+                torch.ones((trg_len, trg_len), device=trg.device)
+            ).bool()
 
-        # dropout, residual connection and layer norm
+        # Self-attention with caching support
+        _trg, _, new_self_cache = self.self_attention(
+            trg, trg, trg, trg_pad_mask, trg_causal_mask, past_key_value=self_attn_cache
+        )
         trg = self.self_attn_layer_norm(trg + self.dropout(_trg))
-        # trg = [batch size, trg len, hid dim]
 
-        # encoder attention
         _trg, attention = self.encoder_attention(trg, enc_src, enc_src, src_mask)
-
-        # dropout, residual connection and layer norm
         trg = self.enc_attn_layer_norm(trg + self.dropout(_trg))
-        # trg = [batch size, trg len, hid dim]
 
-        # positionwise feedforward
         _trg = self.positionwise_feedforward(trg)
-
-        # dropout, residual and layer norm
         trg = self.ff_layer_norm(trg + self.dropout(_trg))
 
-        # trg = [batch size, trg len, hid dim]
-        # attention = [batch size, n heads, trg len, src len]
-
-        return trg, attention
+        return trg, attention, new_self_cache
 
 
 class Decoder(nn.Module):
@@ -239,44 +262,59 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.scale = torch.sqrt(torch.FloatTensor([hid_dim])).to(device)
 
-    def forward(self, trg, enc_src, trg_pad_mask, trg_causal_mask, src_mask):
-        # trg = [batch size, trg len]
-        # enc_src = [batch size, src len, hid dim]
-        # src_mask = [batch size, src len]
-
-        # print(
-        #     "Dec shapes: ",
-        #     trg.shape,
-        #     enc_src.shape,
-        #     trg_pad_mask.shape,
-        #     trg_causal_mask.shape,
-        #     src_mask.shape,
-        # )
-
+    def forward(
+        self, trg, enc_src, trg_pad_mask, trg_causal_mask, src_mask, caches=None
+    ):
+        """
+        Optionally accepts a list 'caches' of length equal to the number of decoder
+        layers. Each element in caches is the cached (key, value) tuple for that layer's
+        self-attention. The method returns both the output logits and the new list of
+        caches.
+        """
         batch_size = trg.shape[0]
         trg_len = trg.shape[1]
-        pos = (
-            torch.arange(0, trg_len, device=self.device)
-            .unsqueeze(0)
-            .repeat(batch_size, 1)
-        )
-        # pos = [batch size, trg len]
+
+        # If caches are provided and not None, we assume that each cache already
+        # contains the tokens processed so far. Thus, the new token should get a
+        # position equal to the current cache length.
+        if caches is not None and caches[0] is not None:
+            # caches[0] is a tuple (past_key, past_value) for the first layer.
+            # Its shape is (batch_size, L_cached, hid_dim).
+            cache_len = caches[0][0].shape[1]
+            # For the current trg (typically shape (batch_size, 1) during inference),
+            # assign position = cache_len.
+            pos = torch.full(
+                (batch_size, trg_len), cache_len, device=self.device, dtype=torch.long
+            )
+        else:
+            pos = (
+                torch.arange(0, trg_len, device=self.device)
+                .unsqueeze(0)
+                .repeat(batch_size, 1)
+            )
 
         trg = self.dropout(
             (self.tok_embedding(trg) * self.scale) + self.pos_embedding(pos)
         )
-        # trg = [batch size, trg len, hid dim]
 
-        for layer in self.layers:
-            trg, _ = layer(trg, enc_src, trg_pad_mask, trg_causal_mask, src_mask)
+        new_caches = []
+        # If no caches are provided, initialize with None for each layer.
+        if caches is None:
+            caches = [None] * len(self.layers)
 
-        # trg = [batch size, trg len, hid dim]
-        # attention = [batch size, n heads, trg len, src len]
+        for i, layer in enumerate(self.layers):
+            trg, attention, new_cache = layer(
+                trg,
+                enc_src,
+                trg_pad_mask,
+                trg_causal_mask,
+                src_mask,
+                self_attn_cache=caches[i],
+            )
+            new_caches.append(new_cache)
 
         output = self.fc_out(trg)
-        # output = [batch size, trg len, output dim]
-
-        return output
+        return output, new_caches
 
 
 class S2S(nn.Module):

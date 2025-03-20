@@ -108,7 +108,7 @@ class WindowFinder:
                 input = src[:, 0].unsqueeze(1)
 
                 trg_pad_mask, trg_causal_mask = self.model.make_trg_mask(input)
-                output = self.model.decoder(
+                output, _ = self.model.decoder(
                     input, enc_src, trg_pad_mask, trg_causal_mask, src_mask
                 )
                 likelihoods = output.topk(1, dim=2).values[:, 0]
