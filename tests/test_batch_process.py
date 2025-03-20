@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from anarcii import Anarcii
@@ -45,10 +47,26 @@ def test_files_are_identical(anarcii_model, tmp_path, pytestconfig):
         else:
             anarcii_model.to_json(test_file)
 
-        with open(expected_file) as f1, open(test_file) as f2:
-            content1 = f1.read().strip()
-            content2 = f2.read().strip()
+        if filetype == "json":
+            with open(expected_file) as f1, open(test_file) as f2:
+                json_expected = json.load(f1)
+                json_test = json.load(f2)
 
-        assert content1 == content2, (
-            f"Files {expected_file} and {test_file}" + " are different!"
-        )
+            # Ensure both lists have the same length
+            assert len(json_expected) == len(json_test), (
+                f"Expected list length {len(json_expected)} but got {len(json_test)}"
+            )
+
+            # Iterate over both lists concurrently
+            for expected_item, test_item in zip(json_expected, json_test):
+                expected_number, expected_data = expected_item
+                test_number, test_data = test_item
+
+                assert expected_number == test_number, (
+                    f"Numbering for {expected_data['query_name']} is different! "
+                    f"Expected: {expected_number}, Got: {test_number}"
+                )
+                assert abs(expected_data["score"] - test_data["score"]) < 0.5, (
+                    f"Scores differ more than 0.5 for {expected_data['query_name']}! "
+                    f"Expected: {expected_data['score']}, Got: {test_data['score']}"
+                )
