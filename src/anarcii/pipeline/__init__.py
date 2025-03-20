@@ -64,8 +64,6 @@ class Anarcii:
         self,
         seq_type: str = "antibody",
         mode: str = "accuracy",
-        # For use with SCFVs or artificial constructs:
-        scfv_or_concatenated_chains: bool = False,
         batch_size: int = 32,
         cpu: bool = False,
         ncpu: int = -1,
@@ -84,7 +82,6 @@ class Anarcii:
         self.max_len_exceed = False
 
         self.output_format = output_format.lower()
-        self.scfv = scfv_or_concatenated_chains
         self.unknown = False
 
         self._last_numbered_output = None
@@ -110,7 +107,7 @@ class Anarcii:
             "shark", self.mode, self.batch_size, self.device, self.verbose
         )
         self.shark_window = WindowFinder(
-            "shark", self.mode, self.batch_size, self.device, self.scfv
+            "shark", self.mode, self.batch_size, self.device
         )
 
         # Antibody model
@@ -118,16 +115,14 @@ class Anarcii:
             "antibody", self.mode, self.batch_size, self.device, self.verbose
         )
         self.ig_window = WindowFinder(
-            "antibody", self.mode, self.batch_size, self.device, self.scfv
+            "antibody", self.mode, self.batch_size, self.device
         )
 
         # TCR model
         self.tcr_model = ModelRunner(
             "tcr", self.mode, self.batch_size, self.device, self.verbose
         )
-        self.tcr_window = WindowFinder(
-            "tcr", self.mode, self.batch_size, self.device, self.scfv
-        )
+        self.tcr_window = WindowFinder("tcr", self.mode, self.batch_size, self.device)
 
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (
@@ -374,7 +369,7 @@ class Anarcii:
         else:
             # instantiate the Sequences class and process
             sequences = SequenceProcessor(
-                dict_of_seqs, model, window_model, self.verbose, self.scfv
+                dict_of_seqs, model, window_model, self.verbose
             )
             processed_seqs, offsets = sequences.process_sequences()
 

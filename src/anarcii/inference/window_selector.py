@@ -38,36 +38,15 @@ def detect_peaks(data, threshold=25, min_distance=50):
         peak_values,
     )
 
-    # #### Plot the data and peaks
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(data, marker="o", linestyle="-", color="b", label="Data")
-    # plt.axhline(
-    #     y=threshold, color="r", linestyle="--", label=f"Threshold ({threshold})"
-    # )
-    # plt.scatter(
-    #     peaks,
-    #     [data[i] for i in peaks],
-    #     color="orange",
-    #     label="Detected Peaks",
-    #     zorder=5,
-    # )
-    # plt.title("Data with Potential Peaks")
-    # plt.xlabel("Index")
-    # plt.ylabel("Score of window")
-    # plt.legend()
-    # plt.grid(True)
-    # plt.show()
-
     return peaks
 
 
 class WindowFinder:
-    def __init__(self, sequence_type, mode, batch_size, device, scfv):
+    def __init__(self, sequence_type, mode, batch_size, device):
         self.type = sequence_type.lower()
         self.mode = mode.lower()
         self.batch_size = batch_size
         self.device = device
-        self.scfv = scfv
 
         if self.type in ["antibody", "shark"]:
             self.sequence_tokeniser = NumberingTokeniser("protein_antibody")
@@ -125,15 +104,6 @@ class WindowFinder:
             # if nothing is over 25 then drop the threshold to 15 - next best.
             if not magic_number:
                 magic_number = first_index_above_threshold(preds, 15)
-
-            if self.scfv:
-                indices = detect_peaks(preds)
-                if len(indices) > 0:
-                    return indices
-                elif magic_number:
-                    return [magic_number]
-                else:
-                    return [preds.index(max(preds))]
 
             if magic_number is not None:
                 return magic_number

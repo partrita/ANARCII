@@ -2,7 +2,7 @@ import re
 
 import torch
 
-from .utils import find_scfvs, pick_window, split_seq
+from .utils import pick_window, split_seq
 
 # from anarcii.pipeline.anarcii_constants import n_jump
 
@@ -56,7 +56,7 @@ class SequenceProcessor:
 
     """
 
-    def __init__(self, seqs, model, window_model, verbose, scfv=False):
+    def __init__(self, seqs, model, window_model, verbose):
         """
         Args:
             seqs (dict): A dictionary, keys are sequence IDs and values are sequences.
@@ -65,13 +65,11 @@ class SequenceProcessor:
             a one step decoder to get get a single logit value representing
             score for the input window (sequence fragment).
             verbose (bool): Whether to print detailed logs.
-            scfv (bool, optional): A flag for special processing. Defaults to False.
         """
         self.seqs = seqs
         self.model = model
         self.window_model = window_model
         self.verbose = verbose
-        self.scfv = scfv
         self.offsets = {}
 
     def process_sequences(self):
@@ -88,100 +86,51 @@ class SequenceProcessor:
         return self._tokenize_sequences(), self.offsets
 
     def _handle_long_sequences(self):
-        if self.scfv:
-            long_seqs = self.seqs
-            # Jump of 2 to provide a granulary probability view.
-            n_jump = 2
+        n_jump = 3
+        long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
 
-            # Splits the seqeucne in 60 length chunks - for granularity
-            split_dict = {
-                key: split_seq(seq, n_jump, 90) for key, seq in long_seqs.items()
-            }
-            res_dict = {
-                key: find_scfvs(ls, self.window_model) for key, ls in split_dict.items()
-            }
+        if long_seqs and self.verbose:
+            print(
+                f"\n {len(long_seqs)} Long sequences detected - running in sliding "
+                "window. This is slow."
+            )
 
-            for key, values in res_dict.items():
-                if len(values) > 1:
-                    num_peaks = 1
-                    for value in values:
-                        # Extract the window but include residues before = 20
-                        # Add 110 to capture the whole thing += 140
-                        # This should give a total length of 160 - without skipping the
-                        # beginning.
-                        start_index = max(
-                            (value * n_jump) - 20, 0
-                        )  # Ensures start_index is at least 0
-                        end_index = (value * n_jump) + 140
+        for key, sequence in long_seqs.items():
+            # first try a simple regex to look for cwc
+            cwc_matches = list(cwc_pattern.finditer(sequence))
+            seq_strings = [m.group("start") + m.group("end") for m in cwc_matches]
+            cwc_strings = [m.group("cwc") for m in cwc_matches]
 
-                        print(long_seqs[key][start_index:end_index])
+            if cwc_matches:
+                # Output the integer index of a high scoring window
+                cwc_winner = pick_window(cwc_strings, self.window_model)
 
-                        # Slice the sequence and update the key reflect multiple chains
-                        self.seqs[key + "_" + str(num_peaks)] = long_seqs[key][
-                            start_index:end_index
-                        ]
-                        num_peaks += 1
+                if cwc_winner is not None:
+                    # Append the start offset
+                    self.offsets[key] = cwc_matches[cwc_winner].start()
+                    # Replace the input sequence
+                    self.seqs[key] = seq_strings[cwc_winner]
+                    # print(seq_strings[cwc_winner])
+                    continue
 
-                    # need to delete the original key
-                    _ = self.seqs.pop(key)  # Deletes the key and returns its value
-                    print(key, "split into multiple seqs")  # 2
+            # No CWC match found proceed to window
+            # If no cwc pattern is found, use the sliding window approach.
+            # Split the sequence into 90-residue chunks and pick the best.
+            windows = split_seq(sequence, n_jump=n_jump)
 
-                else:
-                    value = values[0]
-                    start_index = max(
-                        (value * n_jump) - 20, 0
-                    )  # Ensures start_index is at least 0
-                    end_index = (value * n_jump) + 140
-                    # Slice the sequence
-                    self.seqs[key] = long_seqs[key][start_index:end_index]
-        else:
-            n_jump = 3
-            long_seqs = {key: seq for key, seq in self.seqs.items() if len(seq) > 200}
+            best_window = pick_window(windows, model=self.window_model, fallback=True)
 
-            if long_seqs and self.verbose:
-                print(
-                    f"\n {len(long_seqs)} Long sequences detected - running in sliding "
-                    "window. This is slow."
-                )
+            # Ensures start_index is at least 0.
+            start_index = max((best_window * n_jump) - 40, 0)
+            end_index = (best_window * n_jump) + 160
 
-            for key, sequence in long_seqs.items():
-                # first try a simple regex to look for cwc
-                cwc_matches = list(cwc_pattern.finditer(sequence))
-                seq_strings = [m.group("start") + m.group("end") for m in cwc_matches]
-                cwc_strings = [m.group("cwc") for m in cwc_matches]
+            # Append the start offset
+            self.offsets[key] = start_index
+            # Replace the input sequence
+            self.seqs[key] = sequence[start_index:end_index]
 
-                if cwc_matches:
-                    # Output the integer index of a high scoring window
-                    cwc_winner = pick_window(cwc_strings, self.window_model)
-
-                    if cwc_winner is not None:
-                        # Append the start offset
-                        self.offsets[key] = cwc_matches[cwc_winner].start()
-                        # Replace the input sequence
-                        self.seqs[key] = seq_strings[cwc_winner]
-                        # print(seq_strings[cwc_winner])
-                        continue
-
-                # No CWC match found proceed to window
-                # If no cwc pattern is found, use the sliding window approach.
-                # Split the sequence into 90-residue chunks and pick the best.
-                windows = split_seq(sequence, n_jump=n_jump)
-
-                best_window = pick_window(
-                    windows, model=self.window_model, fallback=True
-                )
-
-                # Ensures start_index is at least 0.
-                start_index = max((best_window * n_jump) - 40, 0)
-                end_index = (best_window * n_jump) + 160
-
-                # Append the start offset
-                self.offsets[key] = start_index
-                # Replace the input sequence
-                self.seqs[key] = sequence[start_index:end_index]
-
-            if long_seqs and self.verbose:
-                print("Max probability windows selected.\n")
+        if long_seqs and self.verbose:
+            print("Max probability windows selected.\n")
 
     def _convert_to_tuple_list(self):
         """
