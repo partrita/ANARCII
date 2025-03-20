@@ -255,13 +255,13 @@ class ModelRunner:
 
                     #### MAGIC NUMBER ####
                     # This is the antibody cutoff - need a new one for TCRS
-                    if round(normalized_score, 1) < 13.5:
+                    if normalized_score < 13.5:
                         numbering.append(None)
 
                         alignment.append(
                             {
                                 "chain_type": "F",
-                                "score": round(normalized_score, 1),
+                                "score": normalized_score,
                                 "query_start": None,
                                 "query_end": None,
                                 "error": error_msg or "Score less than cut off.",
@@ -353,7 +353,7 @@ class ModelRunner:
                                 alignment.append(
                                     {
                                         "chain_type": "F",
-                                        "score": round(normalized_score, 1),
+                                        "score": normalized_score,
                                         "query_start": None,
                                         "query_end": None,
                                         "error": "Could not apply numbering: "
@@ -378,7 +378,7 @@ class ModelRunner:
                                 alignment.append(
                                     {
                                         "chain_type": "F",
-                                        "score": round(normalized_score, 1),
+                                        "score": normalized_score,
                                         "query_start": None,
                                         "query_end": None,
                                         "error": "Could not apply numbering: "
@@ -505,7 +505,7 @@ class ModelRunner:
                         alignment.append(
                             {
                                 "chain_type": "F",
-                                "score": round(normalized_score, 1),
+                                "score": normalized_score,
                                 "query_start": None,
                                 "query_end": None,
                                 "error": f"Could not apply numbering: {captured_error}",
@@ -560,7 +560,7 @@ class ModelRunner:
                     alignment.append(
                         {
                             "chain_type": str(pred_tokens[batch_no, 1]),
-                            "score": round(normalized_score, 1),
+                            "score": normalized_score,
                             "query_start": start_index,
                             "query_end": end_index,
                             "error": None,

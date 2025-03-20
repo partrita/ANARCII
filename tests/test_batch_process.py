@@ -66,7 +66,7 @@ def test_files_are_identical(anarcii_model, tmp_path, pytestconfig):
                     f"Numbering for {expected_data['query_name']} is different! "
                     f"Expected: {expected_number}, Got: {test_number}"
                 )
-                assert abs(expected_data["score"] - test_data["score"]) < 0.5, (
+                assert pytest.approx(test_data["score"]) == expected_data["score"], (
                     f"Scores differ more than 0.5 for {expected_data['query_name']}! "
                     f"Expected: {expected_data['score']}, Got: {test_data['score']}"
                 )
