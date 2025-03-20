@@ -81,9 +81,8 @@ def test_files_are_identical(anarcii_model, tmp_path, scheme, pytestconfig):
                     f"Numbering for {expected_data['query_name']} is different! "
                     f"Expected: {expected_number}, Got: {test_number}"
                 )
-                assert test_data["score"] == pytest.approx(
-                    expected_data["score"], abs=0.5
-                ), (
+                reference = pytest.approx(expected_data["score"], abs=0.5)
+                assert test_data["score"] == reference, (
                     f"Scores differ more than 0.5 for {expected_data['query_name']}! "
                     f"Expected: {expected_data['score']}, Got: {test_data['score']}"
                 )
