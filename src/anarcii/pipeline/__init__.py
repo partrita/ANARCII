@@ -102,28 +102,6 @@ class Anarcii:
         self.device = configure_device(self.cpu, self.ncpu)
         self.print_initial_configuration()
 
-        # shark model
-        self.shark_model = ModelRunner(
-            "shark", self.mode, self.batch_size, self.device, self.verbose
-        )
-        self.shark_window = WindowFinder(
-            "shark", self.mode, self.batch_size, self.device
-        )
-
-        # Antibody model
-        self.ig_model = ModelRunner(
-            "antibody", self.mode, self.batch_size, self.device, self.verbose
-        )
-        self.ig_window = WindowFinder(
-            "antibody", self.mode, self.batch_size, self.device
-        )
-
-        # TCR model
-        self.tcr_model = ModelRunner(
-            "tcr", self.mode, self.batch_size, self.device, self.verbose
-        )
-        self.tcr_window = WindowFinder("tcr", self.mode, self.batch_size, self.device)
-
     def number(self, seqs):
         if self.seq_type.lower() == "unknown" and not (
             ".pdb" in seqs or ".mmcif" in seqs
@@ -224,17 +202,10 @@ class Anarcii:
             return converted_seqs
 
     def number_with_type(self, seqs, inner_type, chunk=False):
-        if inner_type == "shark":
-            model = self.shark_model
-            window_model = self.shark_window
-        elif inner_type == "antibody":
-            model = self.ig_model
-            window_model = self.ig_window
-        elif inner_type == "tcr":
-            model = self.tcr_model
-            window_model = self.tcr_window
-        else:
-            print("Error in defining sequence type to number.")
+        model = ModelRunner(
+            inner_type, self.mode, self.batch_size, self.device, self.verbose
+        )
+        window_model = WindowFinder(inner_type, self.mode, self.batch_size, self.device)
 
         # Reset this
         self.max_len_exceed = False
