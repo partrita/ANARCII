@@ -155,22 +155,36 @@ class ModelRunner:
 
                 src_mask = self.model.make_src_mask(src)
                 enc_src = self.model.encoder(src, src_mask)
+
                 input = src[:, 0].unsqueeze(1)
+                mask_input = src[:, 0].unsqueeze(1)
+                cache = None
 
                 max_input = torch.zeros(
                     batch_size, trg_len, device=self.device, dtype=torch.long
                 )
                 max_input[:, 0] = src[:, 0]
 
+                scores = torch.zeros(
+                    batch_size, trg_len - 1, device=self.device, dtype=torch.float
+                )
+
                 for t in range(1, trg_len):
-                    trg_pad_mask, trg_causal_mask = self.model.make_trg_mask(input)
-                    output = self.model.decoder(
-                        input, enc_src, trg_pad_mask, trg_causal_mask, src_mask
+                    trg_pad_mask, trg_causal_mask = self.model.make_trg_mask(mask_input)
+
+                    output, cache = self.model.decoder(
+                        input, enc_src, trg_pad_mask, trg_causal_mask, src_mask, cache
                     )
 
                     pred_token = output.argmax(2)[:, -1].unsqueeze(1)
+
+                    scores[:, t - 1 : t] = output.topk(1, dim=2).values.squeeze(1)
+
                     max_input[:, t : t + 1] = pred_token
-                    input = max_input[:, : t + 1]
+
+                    mask_input = max_input[:, : t + 1]
+
+                    input = pred_token
 
                 ### 2 tokenise and transfer the batch to cpu
 
@@ -179,7 +193,6 @@ class ModelRunner:
 
                 ### 3 work out IMGT integer values predicted by model
 
-                scores = output.topk(1, dim=2).values[:, :trg_len]
                 scores = scores.squeeze(
                     -1
                 )  # Remove the last dim; shape becomes [batch_size, trg_len]
@@ -242,13 +255,13 @@ class ModelRunner:
 
                     #### MAGIC NUMBER ####
                     # This is the antibody cutoff - need a new one for TCRS
-                    if round(normalized_score, 3) < 13.5:
+                    if normalized_score < 13.5:
                         numbering.append(None)
 
                         alignment.append(
                             {
                                 "chain_type": "F",
-                                "score": round(normalized_score, 3),
+                                "score": normalized_score,
                                 "query_start": None,
                                 "query_end": None,
                                 "error": error_msg or "Score less than cut off.",
@@ -340,7 +353,7 @@ class ModelRunner:
                                 alignment.append(
                                     {
                                         "chain_type": "F",
-                                        "score": round(normalized_score, 3),
+                                        "score": normalized_score,
                                         "query_start": None,
                                         "query_end": None,
                                         "error": "Could not apply numbering: "
@@ -365,7 +378,7 @@ class ModelRunner:
                                 alignment.append(
                                     {
                                         "chain_type": "F",
-                                        "score": round(normalized_score, 3),
+                                        "score": normalized_score,
                                         "query_start": None,
                                         "query_end": None,
                                         "error": "Could not apply numbering: "
@@ -492,7 +505,7 @@ class ModelRunner:
                         alignment.append(
                             {
                                 "chain_type": "F",
-                                "score": round(normalized_score, 3),
+                                "score": normalized_score,
                                 "query_start": None,
                                 "query_end": None,
                                 "error": f"Could not apply numbering: {captured_error}",
@@ -547,7 +560,7 @@ class ModelRunner:
                     alignment.append(
                         {
                             "chain_type": str(pred_tokens[batch_no, 1]),
-                            "score": round(normalized_score, 3),
+                            "score": normalized_score,
                             "query_start": start_index,
                             "query_end": end_index,
                             "error": None,
