@@ -168,18 +168,12 @@ class Anarcii:
                 verbose=self.verbose,
             )
 
-        elif ".pdb" in seqs or ".mmcif" in seqs:
+        else:
             # PDB files can be run directly, bypassing classifii at this stage.
             # They will be classified into ab/tcrs by an inner model which takes list of
             #  seqs read from a PDB file (these can pass through the Classifii code).
-            self._last_numbered_output = self.number_with_type(seqs, "antibody")
-            return convert_output(
-                ls=self._last_numbered_output,
-                format=self.output_format,
-                verbose=self.verbose,
-            )
-        else:
-            self._last_numbered_output = self.number_with_type(seqs, self.seq_type)
+            type = "antibody" if ".pdb" in seqs or ".mmcif" in seqs else self.seq_type
+            self._last_numbered_output = self.number_with_type(seqs, type)
             return convert_output(
                 ls=self._last_numbered_output,
                 format=self.output_format,
