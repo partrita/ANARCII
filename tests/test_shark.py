@@ -8,14 +8,14 @@ from anarcii import Anarcii
 @pytest.fixture(scope="session")
 def anarcii_model(pytestconfig):
     model = Anarcii(
-        seq_type="tcr",
+        seq_type="shark",
         batch_size=64,
         cpu=False,
         ncpu=12,
         mode="accuracy",
         verbose=False,
     )
-    seqs = pytestconfig.rootdir / "tests" / "data" / "raw_data" / "tcr_check.fa"
+    seqs = pytestconfig.rootdir / "tests" / "data" / "raw_data" / "shark_check.fa"
 
     # Seqs must be converted to a str fro some reason...
     model.number(str(seqs))
@@ -27,11 +27,6 @@ def anarcii_model(pytestconfig):
     "scheme",
     [
         "default",
-        "chothia",
-        "imgt",
-        "martin",
-        "kabat",
-        # "aho"
     ],
 )
 def test_files_are_identical(anarcii_model, tmp_path, scheme, pytestconfig):
@@ -43,14 +38,14 @@ def test_files_are_identical(anarcii_model, tmp_path, scheme, pytestconfig):
             / "tests"
             / "data"
             / "expected_data"
-            / f"tcr{suffix}_expected_1.txt"
+            / f"shark{suffix}_expected_1.txt"
         ),
         "json": (
             pytestconfig.rootdir
             / "tests"
             / "data"
             / "expected_data"
-            / f"tcr{suffix}_expected_1.json"
+            / f"shark{suffix}_expected_1.json"
         ),
     }
 
@@ -62,7 +57,7 @@ def test_files_are_identical(anarcii_model, tmp_path, scheme, pytestconfig):
 
     # Generate and check both text and json files
     for filetype in ["txt", "json"]:
-        test_file = tmp_path / f"tcr{suffix}_test_1.{filetype}"
+        test_file = tmp_path / f"shark{suffix}_test_1.{filetype}"
         expected_file = expected_file_templates[filetype]
 
         if filetype == "txt":
