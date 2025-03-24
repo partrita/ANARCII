@@ -141,5 +141,5 @@ class Classifii:
 
                 probs = F.softmax(output, dim=-1)
                 pred_token = probs.argmax(2)[:, -1].unsqueeze(1)
-                preds += [x[0] for x in self.num.tokens[pred_token.to("cpu")].tolist()]
+                preds += [x[0] for x in self.num.tokens[pred_token.to("cpu")]]
         return preds
