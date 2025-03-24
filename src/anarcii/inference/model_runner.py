@@ -308,7 +308,7 @@ class ModelRunner:
                             and not started
                         ):  # Append as backfill up to the start.
                             backfill_residues.append(
-                                str(src_tokens[batch_no, seq_position - 1])
+                                src_tokens[batch_no, seq_position - 1]
                             )
                             continue
 
@@ -318,7 +318,10 @@ class ModelRunner:
                             in_x_run = True
 
                         ###      If breaking out of a X run, construct the labels
-                        elif pred_tokens[batch_no, seq_position].isdigit() and in_x_run:
+                        elif (
+                            isinstance(pred_tokens[batch_no, seq_position], int)
+                            and in_x_run
+                        ):
                             # This code breaks if we have a junk seq that
                             # has predicted runs of X (insertions)
                             # that are not bookended with integers
@@ -391,7 +394,7 @@ class ModelRunner:
 
                         ###      After each iteration through the sequence append the
                         # sequence residue
-                        residues.append(str(src_tokens[batch_no, seq_position - 1]))
+                        residues.append(src_tokens[batch_no, seq_position - 1])
 
                         if not started:
                             start_index = seq_position - 2
@@ -408,7 +411,7 @@ class ModelRunner:
                     # Decide forward fill to 127 (KL) /128 (H) needs to occur.
 
                     # The last number depends on chain type - check type here.
-                    if str(pred_tokens[batch_no, 1]) in ["H", "A", "G"]:
+                    if pred_tokens[batch_no, 1] in ["H", "A", "G"]:
                         last_num = 128
                     else:
                         last_num = 127
@@ -464,9 +467,7 @@ class ModelRunner:
                             eos_position,
                             eos_position + min(missing_count, seq_remainder),
                         ):
-                            missing_end_residues.append(
-                                str(src_tokens[batch_no, i - 1])
-                            )
+                            missing_end_residues.append(src_tokens[batch_no, i - 1])
 
                         # print("Last:\t", last_num)
                         # print("Last pred num:\t", last_predicted_num)
