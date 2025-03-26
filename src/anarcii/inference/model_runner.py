@@ -400,6 +400,22 @@ class ModelRunner:
                     if error_occurred:
                         continue
 
+                    ## Check for duplicates
+                    if len(nums) != len(set(nums)):
+                        numbering.append(None)
+                        alignment.append(
+                            {
+                                "chain_type": "F",
+                                "score": normalized_score,
+                                "query_start": None,
+                                "query_end": None,
+                                "error": "Model predicted duplicate numbers",
+                                "scheme": "imgt",
+                            }
+                        )
+                        # break out of the loop
+                        continue
+
                     ### 5C   Perform forward fill to end of the sequence, if
                     # missed numbering
 
