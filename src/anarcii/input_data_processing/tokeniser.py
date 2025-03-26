@@ -6,7 +6,7 @@ non_standard_aa = set("BOJUZ")
 class Tokeniser:
     def __init__(self):
         vocab = getattr(self, "vocab", [])
-        self.tokens = np.array(vocab)
+        self.tokens = np.array(vocab, dtype=object)
         self.char_to_int = {c: i for i, c in enumerate(vocab)}
         if "X" in vocab:
             for char in non_standard_aa:
@@ -42,7 +42,7 @@ class NumberingTokeniser(Tokeniser):
                 self.start,
                 self.end,
                 self.skip,
-                *([str(x) for x in range(1, 129)]),
+                *list(range(1, 129)),
                 "X",
                 "H",
                 "L",
@@ -65,7 +65,7 @@ class NumberingTokeniser(Tokeniser):
                 self.start,
                 self.end,
                 self.skip,
-                *([str(x) for x in range(1, 129)]),
+                *list(range(1, 129)),
                 "X",
                 "A",
                 "B",
