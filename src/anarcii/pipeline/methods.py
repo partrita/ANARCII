@@ -1,6 +1,8 @@
 import ast
+import shutil
 
 from anarcii.output_data_processing.list_to import write_csv
+from anarcii.utils import to_msgpack
 
 
 def print_initial_configuration(self):
@@ -22,6 +24,34 @@ def print_initial_configuration(self):
                 print("For A100 GPUs, a batch size of 1024 is recommended.")
         else:
             print("Recommended batch size for CPU: 8.")
+
+
+def model_to_msgpack(self, file_path):
+    # 1. Model has not been run - raise error
+    if self._last_numbered_output is None:
+        raise ValueError("No output to save. Run the model first.")
+
+    # 2. Model has been run and converted to alt scheme but does not exceed max_len.
+    elif self._last_converted_output and not self.max_len_exceed:
+        to_msgpack(self._last_converted_output, file_path)
+        print(
+            f"Last output saved to {file_path} in alternate scheme: {self._alt_scheme}."
+        )
+
+    # 3. Model has been run, converted to alt scheme and exceeds max_len!
+    elif self._last_converted_output and self.max_len_exceed:
+        # Move the converted msgpack file to the file path specified in argument.
+        shutil.copy(self._last_converted_output, file_path)
+
+    # 4. Model has been run and exceeds max_len (no conversion).
+    elif self.max_len_exceed:
+        # Move the msgpack file to the file path specified in argument.
+        shutil.copy(self._last_numbered_output, file_path)
+
+    # 5. Model has been run and does not exceed max_len (no conversion).
+    else:
+        to_msgpack(self._last_numbered_output, file_path)
+        print(f"Last output saved to {file_path}.")
 
 
 def to_csv(self, file_path):

@@ -20,10 +20,11 @@ from anarcii.pipeline.configuration import configure_cpus, configure_device
 
 # Processing output
 from anarcii.pipeline.methods import (
+    model_to_msgpack,
     print_initial_configuration,
     to_csv,
 )
-from anarcii.utils import to_msgpack
+from anarcii.utils import from_msgpack_map, to_msgpack
 
 if sys.version_info >= (3, 12):
     from itertools import batched
@@ -120,12 +121,15 @@ class Anarcii:
         # Attach methods
         self.print_initial_configuration = print_initial_configuration.__get__(self)
         self.to_csv = to_csv.__get__(self)
-        self.to_msgpack = to_msgpack
+        self.to_msgpack = model_to_msgpack.__get__(self)
 
         # Get device and ncpu config
         self.ncpu = configure_cpus(ncpu)
         self.device = configure_device(self.cpu, self.ncpu)
         self.print_initial_configuration()
+
+        # Need a bool to check if the max_len is exceeded
+        self.max_len_exceed = False
 
     def number(self, seqs: Input, legacy_format=False):
         seqs, structure = coerce_input(seqs)
@@ -151,6 +155,8 @@ class Anarcii:
 
         # If there is more than one chunk, we will need to serialise the output.
         if serialise := n_seqs > self.max_seqs_len:
+            # Maximum sequence length has been exceeded, set max_len_exceed to be True.
+            self.max_len_exceed = True
             id = uuid.uuid4()
             self._last_numbered_output = Path(f"anarcii-{id}-imgt.msgpack")
 
@@ -230,6 +236,29 @@ class Anarcii:
         # Check if there's output to save
         if self._last_numbered_output is None:
             raise ValueError("No output to convert. Run the model first.")
+
+        elif self.max_len_exceed:
+            # if exceeds max_len, then self.last_numbered_output is path to msgpack file
+            self.last_converted_output = self._last_numbered_output.replace(
+                ".msgpack", "_converted.msgpack"
+            )
+
+            print(
+                f"Converting {len(self._last_numbered_output)} sequences to {scheme} "
+                "scheme. This may take a while."
+            )
+
+            # Read the msgpack file in chunks and convert it to the new scheme.
+            for seqs_to_convert in from_msgpack_map(
+                self._last_numbered_output, chunk_size=102_400
+            ):
+                tmp_converted_seqs = convert_number_scheme(seqs_to_convert, scheme)
+
+                ## HOW DO I SERIALISE THIS TO AN EXISTING FILE ?? ###
+                # Write the converted sequences to a new msgpack file.
+                to_msgpack(tmp_converted_seqs, self.last_converted_output)
+
+            print(f"Converted sequences saved to {self.last_converted_output}.")
 
         else:
             converted_seqs = convert_number_scheme(self._last_numbered_output, scheme)
