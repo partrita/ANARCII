@@ -1,4 +1,3 @@
-# FIXME:  Refactor for new numbered sequence data structure.
 def legacy_output(dt, verbose):
     if verbose:
         print(
