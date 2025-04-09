@@ -22,9 +22,8 @@ from anarcii.pipeline.configuration import configure_cpus, configure_device
 from anarcii.pipeline.methods import (
     print_initial_configuration,
     to_csv,
-    to_imgt_regions,
-    to_json,
 )
+from anarcii.utils import to_msgpack
 
 if sys.version_info >= (3, 12):
     from itertools import batched
@@ -80,7 +79,7 @@ class Anarcii:
         * Processed seqs are passed to model which uses ModelRunner class to perform
         autogressive inference steps.
         * Numbered seqs can be returned as a list, as well as be written to:
-             csv,json, txt
+             csv or msgpack
 
     IF:
         * Very long list of seqs, or a long fasta file - the process is broken up
@@ -121,8 +120,7 @@ class Anarcii:
         # Attach methods
         self.print_initial_configuration = print_initial_configuration.__get__(self)
         self.to_csv = to_csv.__get__(self)
-        self.to_json = to_json.__get__(self)
-        self.to_imgt_regions = to_imgt_regions.__get__(self)
+        self.to_msgpack = to_msgpack
 
         # Get device and ncpu config
         self.ncpu = configure_cpus(ncpu)
@@ -239,7 +237,7 @@ class Anarcii:
 
             # The problem is we cannot write over last numbered output
             # Instead, the converted scheme is written to a new object
-            # This allows it to be written to json/text/csv
+            # This allows it to be written to csv or msgpack
             self._last_converted_output = converted_seqs
             self._alt_scheme = scheme
 
