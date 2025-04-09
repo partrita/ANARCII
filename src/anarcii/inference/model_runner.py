@@ -1,12 +1,17 @@
 import torch
 
+from anarcii.input_data_processing import TokenisedSequence
 from anarcii.input_data_processing.tokeniser import NumberingTokeniser
 
 from .model_loader import Loader
-from .utils import build_inward_list, dataloader, format_output
+from .utils import build_inward_list, dataloader
 
 # NEED TO COME BACK TO THIS CODE AND LOOK AT THE TRY EXCEPT LOOPS....
 # SOMETHING SHOULD BE MODIFIED TO REDUCE THEM....
+
+
+# A cutoff score to consider a sequence as well numbered by the language model.
+CUTOFF_SCORE = 15
 
 
 class ModelRunner:
@@ -85,7 +90,7 @@ class ModelRunner:
         model_loader = Loader(self.type, self.mode, self.device)
         return model_loader.model
 
-    def __call__(self, list_of_tuples, offsets):
+    def __call__(self, tokenised_seqs: dict[str, TokenisedSequence], offsets):
         """
         This involves putting tokenised seqs into dataloader, making predictions,
         formating the output. Returning the numbered seqs to the user in the order in
@@ -93,18 +98,19 @@ class ModelRunner:
         """
 
         # NB: Provide a list of recommended batch sizes based on RAM and architecture
-        seqs_only = [t[2] for t in list_of_tuples]  # tokenised
-        names_only = [t[1] for t in list_of_tuples]
-        indices = [t[0] for t in list_of_tuples]
 
-        dl = dataloader(self.batch_size, seqs_only)
-        numbering, alignment = self._predict_numbering(dl)
+        dl = dataloader(self.batch_size, list(tokenised_seqs.values()))
+        numbering = dict(zip(tokenised_seqs, self._predict_numbering(dl)))
 
-        numbered_output = format_output(
-            indices, names_only, numbering, alignment, offsets
-        )
+        # Add offsets, where necessary.
+        for key, value in offsets.items():
+            # Catch long sequences which have an offset but fail numbering.
+            if numbering[key]["query_start"] is None:
+                continue
+            numbering[key]["query_start"] += value
+            numbering[key]["query_end"] += value
 
-        return numbered_output
+        return numbering
 
     def _predict_numbering(self, dl):
         """
@@ -133,10 +139,8 @@ class ModelRunner:
             print(f"Making predictions on {len(dl)} batches.")
 
         numbering = []
-        alignment = []
 
         num = 0
-        batch = 1
 
         pad_token = self.pad_token
         sos_token = self.sos_token
@@ -148,7 +152,6 @@ class ModelRunner:
 
         with torch.no_grad():
             for X in dl:
-                batch += 1
                 src = X.to(self.device)
                 batch_size = src.shape[0]
                 trg_len = src.shape[1] + 1  # Need to add 1 to include chain ID
@@ -253,13 +256,10 @@ class ModelRunner:
                         normalized_score = 0.0
                         error_msg = "Less than 50 non insertion residues numbered."
 
-                    #### MAGIC NUMBER ####
-                    # This is the antibody cutoff - need a new one for TCRS
-                    if normalized_score < 13.5:
-                        numbering.append(None)
-
-                        alignment.append(
+                    if normalized_score < CUTOFF_SCORE:
+                        numbering.append(
                             {
+                                "numbering": None,
                                 "chain_type": "F",
                                 "score": normalized_score,
                                 "query_start": None,
@@ -352,9 +352,9 @@ class ModelRunner:
                             except ValueError as e:
                                 # Capture the error message from the exception
                                 captured_error = str(e)
-                                numbering.append(None)
-                                alignment.append(
+                                numbering.append(
                                     {
+                                        "numbering": None,
                                         "chain_type": "F",
                                         "score": normalized_score,
                                         "query_start": None,
@@ -377,9 +377,9 @@ class ModelRunner:
                             except ValueError as e:
                                 # Capture the error message from the exception
                                 captured_error = str(e)
-                                numbering.append(None)
-                                alignment.append(
+                                numbering.append(
                                     {
+                                        "numbering": None,
                                         "chain_type": "F",
                                         "score": normalized_score,
                                         "query_start": None,
@@ -403,11 +403,19 @@ class ModelRunner:
                     if error_occurred:
                         continue
 
+                    # Assign an end index before entering forwardfill
+                    if not end_index:
+                        end_index = eos_position - 3
+                        # eos_position - 1: Moves to the token before <EOS>,
+                        # excluding the <EOS> marker itself.
+                        # Subtracting an additional 1 for SOS and 1 for CLS:
+                        # Adjusts further to skip over these two tokens.
+
                     ## Check for duplicates
                     if len(nums) != len(set(nums)):
-                        numbering.append(None)
-                        alignment.append(
+                        numbering.append(
                             {
+                                "numbering": None,
                                 "chain_type": "F",
                                 "score": normalized_score,
                                 "query_start": None,
@@ -496,12 +504,7 @@ class ModelRunner:
                         nums = nums + missing_end_nums
                         residues = residues + missing_end_residues
 
-                    if not end_index:
-                        end_index = eos_position - 3
-                        # eos_position - 1: Moves to the token before <EOS>,
-                        # excluding the <EOS> marker itself.
-                        # Subtracting an additional 1 for SOS and 1 for CLS:
-                        # Adjusts further to skip over these two tokens.
+                        end_index = end_index + len(missing_end_nums)
 
                     ### 5D   Perform backfill for missed start of sequence, if missed
                     # numbering
@@ -518,9 +521,9 @@ class ModelRunner:
                         # an X token. End the loop here and move on to the next seq
                         # in the batch.
                         captured_error = str(e)
-                        numbering.append(None)
-                        alignment.append(
+                        numbering.append(
                             {
+                                "numbering": None,
                                 "chain_type": "F",
                                 "score": normalized_score,
                                 "query_start": None,
@@ -542,7 +545,7 @@ class ModelRunner:
                         residues = list(backfill_residues[-len(vals) :]) + residues
 
                         # Adjust the start index for the backfill
-                        start_index = start_index - len(backfill_residues)
+                        start_index = start_index - len(vals)
 
                     ### 5E Fill in up to 1 (starting IMGT residue) with gaps
                     first_num = int(nums[0][0])  # get first number again - may change
@@ -571,11 +574,10 @@ class ModelRunner:
 
                     ### 6 Populate the meta data dict and append to alignment list
 
-                    numbering.append(list(zip(nums, residues)))
-
                     # Successful - append.
-                    alignment.append(
+                    numbering.append(
                         {
+                            "numbering": list(zip(nums, residues)),
                             "chain_type": str(pred_tokens[batch_no, 1]),
                             "score": normalized_score,
                             "query_start": start_index,
@@ -585,4 +587,4 @@ class ModelRunner:
                         }
                     )
 
-            return numbering, alignment
+            return numbering
