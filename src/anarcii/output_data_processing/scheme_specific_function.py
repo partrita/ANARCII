@@ -528,17 +528,32 @@ def aho(regions, chain_type):
     # undefined. Note that for alpha chains the gapping rules are inconsistent.
 
     _L = 28, 36, 35, 37, 34, 38, 27, 29, 33, 39, 32, 40, 26, 30, 25, 31, 41, 42
-    #                           |-> undefined by AHo. Gapping C terminal loop then N
-    #                               terminal then 31, then fw.
-    _K = 28, 27, 36, 35, 37, 34, 38, 33, 39, 32, 40, 29, 26, 30, 25, 31, 41, 42
-    #                                 |-> undefined by AHo. Gapping C terminal loop
-    #                                     then N terminal then fw.
-    _H = 28, 36, 35, 37, 34, 38, 27, 33, 39, 32, 40, 29, 26, 30, 25, 31, 41, 42
-    #                        |-> undefined by AHo. Gapping C terminal loop then N
-    #                            terminal then fw. N.B. The header on the alignment
-    #                            image for PDB_VH is offset by 1!
+    #  |-> undefined by AHo. Gapping C terminal loop then N terminal then 31, then fw.
 
-    ordered_deletions = {"L": _L, "K": _K, "H": _H}
+    _K = 28, 27, 36, 35, 37, 34, 38, 33, 39, 32, 40, 29, 26, 30, 25, 31, 41, 42
+    #  |-> undefined by AHo. Gapping C terminal loop then N terminal then fw.
+
+    _H = 28, 36, 35, 37, 34, 38, 27, 33, 39, 32, 40, 29, 26, 30, 25, 31, 41, 42
+    #  |-> undefined by AHo. Gapping C terminal loop then N terminal then fw.
+    #  N.B. The header on the alignment image for PDB_VH is offset by 1!
+
+    _A = 28, 36, 35, 37, 34, 38, 33, 39, 27, 32, 40, 29, 26, 30, 25, 31, 41, 42
+    # |-> undefined by AHo. Gapping C terminal loop then N terminal then fw.
+    # N.B The gapping is inconsistent for alpha chains.
+    # I follow the paper's statement that most VA have one gap at 28 and remove 28 and
+    # 27 before removing 40.
+
+    _B = 28, 36, 35, 37, 34, 38, 33, 39, 27, 32, 40, 29, 26, 30, 25, 31, 41, 42
+    # |-> undefined by AHo. Gapping C terminal loop then N terminal then 31, then fw.
+
+    _D = 28, 36, 35, 37, 34, 38, 27, 33, 39, 32, 40, 29, 26, 30, 25, 31, 41, 42
+    # |-> undefined by AHo. Gapping C terminal loop then N terminal then 31, then fw.
+    # N.B only two sequence patterns available.
+    _G = 28, 36, 35, 37, 34, 38, 27, 33, 39, 32, 40, 29, 26, 30, 25, 31, 41, 42
+    # |-> undefined by AHo. Gapping C terminal loop then N terminal then 31, then fw.
+    # N.B only one sequence patterns available. Delta copied.
+
+    ordered_deletions = {"L": _L, "K": _K, "H": _H, "A": _A, "B": _B, "D": _D, "G": _G}
 
     length = len(regions[3])
 
