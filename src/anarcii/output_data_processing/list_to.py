@@ -1,4 +1,3 @@
-import json
 import re
 
 import pandas as pd
@@ -64,11 +63,7 @@ def write_csv(ls, filename=None):
     return df
 
 
-def write_json(data, file_path):
-    with open(file_path, "w") as json_file:
-        json.dump(data, json_file, indent=2)
-
-
+# Keep the function below in case we need again.
 def return_imgt_regions(ls):
     # Define IMGT regions with ranges
     imgt_regions = {

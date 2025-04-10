@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 import sys
 import time
 import uuid
@@ -17,14 +18,7 @@ from anarcii.input_data_processing.sequences import SequenceProcessor
 from anarcii.output_data_processing.convert_to_legacy_format import legacy_output
 from anarcii.output_data_processing.schemes import convert_number_scheme
 from anarcii.pipeline.configuration import configure_cpus, configure_device
-
-# Processing output
-from anarcii.pipeline.methods import (
-    print_initial_configuration,
-    to_csv,
-    to_imgt_regions,
-    to_json,
-)
+from anarcii.utils import from_msgpack_map, to_msgpack
 
 if sys.version_info >= (3, 12):
     from itertools import batched
@@ -41,6 +35,8 @@ else:
                 raise ValueError("batched(): incomplete batch")
             yield batch
 
+
+packer = msgpack.Packer()
 
 # Record all groups in mmCIF output, including _atom_site.auth_atom_id and .auth_comp_id
 mmcif_output_groups = gemmi.MmcifOutputGroups(True, auth_all=True)
@@ -80,7 +76,7 @@ class Anarcii:
         * Processed seqs are passed to model which uses ModelRunner class to perform
         autogressive inference steps.
         * Numbered seqs can be returned as a list, as well as be written to:
-             csv,json, txt
+             csv or msgpack
 
     IF:
         * Very long list of seqs, or a long fasta file - the process is broken up
@@ -118,16 +114,29 @@ class Anarcii:
         self._last_converted_output = None
         self._alt_scheme = None
 
-        # Attach methods
-        self.print_initial_configuration = print_initial_configuration.__get__(self)
-        self.to_csv = to_csv.__get__(self)
-        self.to_json = to_json.__get__(self)
-        self.to_imgt_regions = to_imgt_regions.__get__(self)
-
         # Get device and ncpu config
         self.ncpu = configure_cpus(ncpu)
         self.device = configure_device(self.cpu, self.ncpu)
         self.print_initial_configuration()
+
+    def print_initial_configuration(self):
+        """Print initial configuration details if verbose mode is enabled."""
+        if self.verbose:
+            print(f"Batch size: {self.batch_size}")
+            print(
+                "\tSpeed is a balance of batch size and length diversity. "
+                "Adjust accordingly. For a full explanation see:\n",
+                "\twiki/FAQs#recommended-batch-sizes\n",
+                "\tSeqs all similar length (+/-5), increase batch size. "
+                "Mixed lengths (+/-30), reduce.\n",
+            )
+            if not self.cpu:
+                if self.batch_size < 512:
+                    print("\nConsider larger batch size for optimal GPU performance.\n")
+                elif self.batch_size > 512:
+                    print("\nFor A100 GPUs, a batch size of 1024 is recommended.\n")
+            else:
+                print("\nRecommended batch size for CPU: 8.\n")
 
     def number(self, seqs: Input, legacy_format=False):
         seqs, structure = coerce_input(seqs)
@@ -163,7 +172,6 @@ class Anarcii:
                 f"sequences exceeds the serialisation limit of {self.max_seqs_len}.\n",
             )
 
-            packer = msgpack.Packer()
             # Initialise a MessagePack map with the expected number of sequences, so we
             # can later stream the key value pairs, rather than needing to create a
             # separate MessagePack map for each chunk.
@@ -233,17 +241,79 @@ class Anarcii:
         if self._last_numbered_output is None:
             raise ValueError("No output to convert. Run the model first.")
 
+        elif isinstance(self._last_numbered_output, Path):
+            # if exceeds max_len, then self.last_numbered_output is path to msgpack file
+            self._last_converted_output = self._last_numbered_output.with_stem(
+                self._last_numbered_output.stem.replace("imgt", scheme)
+            )
+
+            with (
+                self._last_numbered_output.open("rb") as f,
+                self._last_converted_output.open("wb") as g,
+            ):
+                unpacker = msgpack.Unpacker(f, use_list=False)
+                n_seqs = unpacker.read_map_header()
+                g.write(packer.pack_map_header(n_seqs))
+
+            print(
+                f"Converting {n_seqs} sequences to {scheme} "
+                "scheme. This may take a while."
+            )
+
+            # Read the msgpack file in chunks and convert it to the new scheme.
+            for seqs_to_convert in from_msgpack_map(self._last_numbered_output):
+                converted_seqs = convert_number_scheme(seqs_to_convert, scheme)
+
+                with self._last_converted_output.open("ab") as f:
+                    for item in chain.from_iterable(converted_seqs.items()):
+                        f.write(packer.pack(item))
+
+            print(f"Converted sequences saved to {self._last_converted_output}.")
+
         else:
-            converted_seqs = convert_number_scheme(self._last_numbered_output, scheme)
+            self._last_converted_output = convert_number_scheme(
+                self._last_numbered_output, scheme
+            )
             print(f"Last output converted to {scheme}")
 
             # The problem is we cannot write over last numbered output
             # Instead, the converted scheme is written to a new object
-            # This allows it to be written to json/text/csv
-            self._last_converted_output = converted_seqs
+            # This allows it to be written to csv or msgpack
             self._alt_scheme = scheme
 
-            return converted_seqs
+            return self._last_converted_output
+
+    def to_msgpack(self, file_path):
+        # 1. Model has not been run - raise error
+        if self._last_numbered_output is None:
+            raise ValueError("No output to save. Run the model first.")
+
+        # 2. Model has been run and converted to alt scheme but does not exceed max_len.
+        elif self._last_converted_output and not isinstance(
+            self._last_numbered_output, Path
+        ):
+            to_msgpack(self._last_converted_output, file_path)
+            print(
+                f"Last output saved to {file_path} in alternate scheme: "
+                f"{self._alt_scheme}."
+            )
+
+        # 3. Model has been run, converted to alt scheme and exceeds max_len!
+        elif self._last_converted_output and isinstance(
+            self._last_numbered_output, Path
+        ):
+            # Move the converted msgpack file to the file path specified in argument.
+            shutil.copy(self._last_converted_output, file_path)
+
+        # 4. Model has been run and exceeds max_len (no conversion).
+        elif isinstance(self._last_numbered_output, Path):
+            # Move the msgpack file to the file path specified in argument.
+            shutil.copy(self._last_numbered_output, file_path)
+
+        # 5. Model has been run and does not exceed max_len (no conversion).
+        else:
+            to_msgpack(self._last_numbered_output, file_path)
+            print(f"Last output saved to {file_path}.")
 
     def number_with_type(self, seqs: dict[str, str], seq_type):
         model = ModelRunner(
