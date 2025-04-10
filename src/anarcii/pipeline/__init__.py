@@ -250,7 +250,7 @@ class Anarcii:
                 self._last_numbered_output.open("rb") as f,
                 self._last_converted_output.open("wb") as g,
             ):
-                unpacker = unpacker = msgpack.Unpacker(f, use_list=False)
+                unpacker = msgpack.Unpacker(f, use_list=False)
                 n_seqs = unpacker.read_map_header()
                 g.write(packer.pack_map_header(n_seqs))
 
