@@ -260,9 +260,7 @@ class Anarcii:
             )
 
             # Read the msgpack file in chunks and convert it to the new scheme.
-            for seqs_to_convert in from_msgpack_map(
-                self._last_numbered_output, chunk_size=102_400
-            ):
+            for seqs_to_convert in from_msgpack_map(self._last_numbered_output):
                 converted_seqs = convert_number_scheme(seqs_to_convert, scheme)
 
                 with self._last_converted_output.open("ab") as f:
