@@ -125,7 +125,8 @@ class Anarcii:
             print(f"Batch size: {self.batch_size}")
             print(
                 "\tSpeed is a balance of batch size and length diversity. "
-                "Adjust accordingly.\n",
+                "Adjust accordingly. For a full explanation see:\n",
+                "\twiki/FAQs#recommended-batch-sizes\n",
                 "\tSeqs all similar length (+/-5), increase batch size. "
                 "Mixed lengths (+/-30), reduce.\n",
             )
