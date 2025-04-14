@@ -238,14 +238,15 @@ class Anarcii:
         return self._last_numbered_output
 
     def to_scheme(self, scheme="imgt"):
-        # Check if there's output to save
         if self._last_numbered_output is None:
             raise ValueError("No output to convert. Run the model first.")
 
-        elif scheme == self._alt_scheme or scheme == "imgt":
+        elif scheme == self._alt_scheme:
             print(f"Last output is already in {scheme} scheme.\n")
-            last_object = self._last_converted_output or self._last_numbered_output
-            return last_object
+            return self._last_converted_output
+
+        elif scheme == "imgt":
+            return self._last_numbered_output
 
         elif isinstance(self._last_numbered_output, Path):
             # if exceeds max_len, then self.last_numbered_output is path to msgpack file

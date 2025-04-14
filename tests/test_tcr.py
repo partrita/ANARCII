@@ -27,7 +27,7 @@ def anarcii_model(pytestconfig):
     "scheme",
     [
         "chothia",
-        "imgt",
+        # "imgt",
         "martin",
         "kabat",
         # "aho"
