@@ -139,6 +139,10 @@ class Anarcii:
                 print("\nRecommended batch size for CPU: 8.\n")
 
     def number(self, seqs: Input):
+        self._last_numbered_output = None
+        self._last_converted_output = None
+        self._alt_scheme = None
+
         seqs, structure = coerce_input(seqs)
         if not structure:
             # Do not split sequences on delimiter characters if the input was in PDBx or
