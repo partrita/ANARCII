@@ -15,6 +15,7 @@ from anarcii.inference.model_runner import CUTOFF_SCORE, ModelRunner
 from anarcii.inference.window_selector import WindowFinder
 from anarcii.input_data_processing import Input, coerce_input, split_sequences
 from anarcii.input_data_processing.sequences import SequenceProcessor
+from anarcii.output_data_processing import stream_msgpack_to_csv, write_csv
 from anarcii.output_data_processing.convert_to_legacy_format import legacy_output
 from anarcii.output_data_processing.schemes import convert_number_scheme
 from anarcii.pipeline.configuration import configure_cpus, configure_device
@@ -338,6 +339,32 @@ class Anarcii:
         # 5. Model has been run and does not exceed max_len (no conversion).
         else:
             to_msgpack(self._last_numbered_output, file_path)
+            print(f"Last output saved to {file_path}.")
+
+    def to_csv(self, file_path):
+        if self._last_numbered_output is None:
+            raise ValueError("No output to save. Run the model first.")
+
+        elif self._last_converted_output and not isinstance(
+            self._last_numbered_output, Path
+        ):
+            write_csv(self._last_converted_output, file_path)
+            print(
+                f"Last output saved to {file_path} in alternate scheme: "
+                f"{self._alt_scheme}."
+            )
+
+        elif self._last_converted_output and isinstance(
+            self._last_numbered_output, Path
+        ):
+            stream_msgpack_to_csv(self._last_converted_output, file_path)
+
+        elif isinstance(self._last_numbered_output, Path):
+            print(f"Last output saved to {file_path}.")
+            stream_msgpack_to_csv(self._last_numbered_output, file_path)
+
+        else:
+            write_csv(self._last_numbered_output, file_path)
             print(f"Last output saved to {file_path}.")
 
     def number_with_type(self, seqs: dict[str, str], seq_type):
