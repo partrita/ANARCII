@@ -152,7 +152,7 @@ def test_cli_files(run_cli, args, pytestconfig, tmp_path):
         # Tuple rebuild.
         try:
             expected_number = tuple(((x[0][0], x[0][1]), x[1]) for x in expected_number)
-        except ValueError:
+        except TypeError:
             expected_number = None
 
         query_name = expected_data["query_name"]
