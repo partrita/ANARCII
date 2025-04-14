@@ -313,35 +313,23 @@ class Anarcii:
         """
         Convert or copy the last numbered output to a msgpack file of users choice.
         """
-        # 1. Model has not been run - raise error
-        if self._last_numbered_output is None:
+        last_object = self._last_converted_output or self._last_numbered_output
+        if last_object is None:
             raise ValueError("No output to save. Run the model first.")
 
-        # 2. Model has been run and converted to alt scheme but does not exceed max_len.
-        elif self._last_converted_output and not isinstance(
-            self._last_numbered_output, Path
-        ):
-            to_msgpack(self._last_converted_output, file_path)
-            print(
-                f"Last output saved to {file_path} in alternate scheme: "
-                f"{self._alt_scheme}."
-            )
-
-        # 3. Model has been run, converted to alt scheme and exceeds max_len!
-        elif self._last_converted_output and isinstance(
-            self._last_numbered_output, Path
-        ):
-            # Move the converted msgpack file to the file path specified in argument.
-            shutil.copy(self._last_converted_output, file_path)
-
-        # 4. Model has been run and exceeds max_len (no conversion).
-        elif isinstance(self._last_numbered_output, Path):
-            shutil.copy(self._last_numbered_output, file_path)
-
-        # 5. Model has been run and does not exceed max_len (no conversion).
         else:
-            to_msgpack(self._last_numbered_output, file_path)
-            print(f"Last output saved to {file_path}.")
+            if not isinstance(last_object, Path):
+                to_msgpack(last_object, file_path)
+                print(
+                    f"Last output saved to {file_path} in scheme: {self._alt_scheme}."
+                )
+
+            elif self._last_converted_output:
+                # Move converted msgpack file to the file path specified in argument.
+                shutil.copy(last_object, file_path)
+
+            else:
+                shutil.copy(last_object, file_path)
 
     def to_csv(self, file_path):
         """
