@@ -246,6 +246,9 @@ class Anarcii:
             return self._last_converted_output
 
         elif scheme == "imgt":
+            # User has request IMGT or else a return to IMGT - perform reset.
+            self._last_converted_output = None
+            self._alt_scheme = None
             return self._last_numbered_output
 
         elif isinstance(self._last_numbered_output, Path):
