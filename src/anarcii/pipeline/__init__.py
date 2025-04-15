@@ -139,6 +139,10 @@ class Anarcii:
                 print("\nRecommended batch size for CPU: 8.\n")
 
     def number(self, seqs: Input):
+        self._last_numbered_output = None
+        self._last_converted_output = None
+        self._alt_scheme = None
+
         seqs, structure = coerce_input(seqs)
         if not structure:
             # Do not split sequences on delimiter characters if the input was in PDBx or
@@ -234,9 +238,18 @@ class Anarcii:
         return self._last_numbered_output
 
     def to_scheme(self, scheme="imgt"):
-        # Check if there's output to save
         if self._last_numbered_output is None:
             raise ValueError("No output to convert. Run the model first.")
+
+        elif scheme == self._alt_scheme:
+            print(f"Last output is already in {scheme} scheme.\n")
+            return self._last_converted_output
+
+        elif scheme == "imgt":
+            # User has request IMGT or else a return to IMGT - perform reset.
+            self._last_converted_output = None
+            self._alt_scheme = None
+            return self._last_numbered_output
 
         elif isinstance(self._last_numbered_output, Path):
             # if exceeds max_len, then self.last_numbered_output is path to msgpack file
@@ -313,35 +326,19 @@ class Anarcii:
         """
         Convert or copy the last numbered output to a msgpack file of users choice.
         """
-        # 1. Model has not been run - raise error
-        if self._last_numbered_output is None:
+        last_object = self._last_converted_output or self._last_numbered_output
+        if last_object is None:
             raise ValueError("No output to save. Run the model first.")
 
-        # 2. Model has been run and converted to alt scheme but does not exceed max_len.
-        elif self._last_converted_output and not isinstance(
-            self._last_numbered_output, Path
-        ):
-            to_msgpack(self._last_converted_output, file_path)
-            print(
-                f"Last output saved to {file_path} in alternate scheme: "
-                f"{self._alt_scheme}."
-            )
-
-        # 3. Model has been run, converted to alt scheme and exceeds max_len!
-        elif self._last_converted_output and isinstance(
-            self._last_numbered_output, Path
-        ):
-            # Move the converted msgpack file to the file path specified in argument.
-            shutil.copy(self._last_converted_output, file_path)
-
-        # 4. Model has been run and exceeds max_len (no conversion).
-        elif isinstance(self._last_numbered_output, Path):
-            shutil.copy(self._last_numbered_output, file_path)
-
-        # 5. Model has been run and does not exceed max_len (no conversion).
         else:
-            to_msgpack(self._last_numbered_output, file_path)
-            print(f"Last output saved to {file_path}.")
+            if isinstance(last_object, Path):
+                shutil.copy(last_object, file_path)
+
+            else:
+                to_msgpack(last_object, file_path)
+                print(
+                    f"Last output saved to {file_path} in scheme: {self._alt_scheme}."
+                )
 
     def to_csv(self, file_path):
         """

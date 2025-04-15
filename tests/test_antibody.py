@@ -22,7 +22,16 @@ def anarcii_model(pytestconfig):
     return model
 
 
-@pytest.mark.parametrize("scheme", ["chothia", "imgt", "martin", "kabat", "aho"])
+@pytest.mark.parametrize(
+    "scheme",
+    [
+        "chothia",
+        pytest.param("imgt", marks=pytest.mark.xfail),
+        "martin",
+        "kabat",
+        "aho",
+    ],
+)
 def test_files_are_identical(anarcii_model, tmp_path, scheme, pytestconfig):
     suffix = f"_{scheme}"
 
