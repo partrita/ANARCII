@@ -354,14 +354,14 @@ class Anarcii:
             raise ValueError("No output to save. Run the model first.")
 
         else:
-            if not isinstance(last_object, Path):
+            if isinstance(last_object, Path):
+                stream_msgpack_to_csv(last_object, file_path)
+
+            else:
                 write_csv(last_object, file_path)
                 print(
                     f"Last output saved to {file_path} in scheme: {self._alt_scheme}."
                 )
-
-            else:
-                stream_msgpack_to_csv(last_object, file_path)
 
     def number_with_type(self, seqs: dict[str, str], seq_type):
         model = ModelRunner(
