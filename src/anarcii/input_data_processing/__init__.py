@@ -2,22 +2,30 @@ from __future__ import annotations
 
 import gzip
 import re
+import sys
 from collections.abc import Iterator
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import TypeAlias
 
 import torch
 from gemmi import Chain, FastaSeq, Structure, read_pir_or_fasta, read_structure
 
 # Valid user input types.
-Input: TypeAlias = (
-    Path | str | tuple[str, str] | list[str | tuple[str, str]] | dict[str, str]
-)
-SequenceDict: TypeAlias = dict[str | tuple[int, str], str]
-# A TokenisedSequence is a torch.Tensor of dtype np.int32.
-TokenisedSequence: TypeAlias = torch.Tensor
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+
+    Input: TypeAlias = (
+        Path | str | tuple[str, str] | list[str | tuple[str, str]] | dict[str, str]
+    )
+    SequenceDict: TypeAlias = dict[str | tuple[int, str], str]
+    # A TokenisedSequence is a torch.Tensor of dtype np.int32.
+    TokenisedSequence: TypeAlias = torch.Tensor
+else:
+    Input = Path | str | tuple[str, str] | list[str | tuple[str, str]] | dict[str, str]
+    SequenceDict = dict[str | tuple[int, str], str]
+    # A TokenisedSequence is a torch.Tensor of dtype np.int32.
+    TokenisedSequence = torch.Tensor
 
 
 gz_suffixes = {".gz", ".z"}

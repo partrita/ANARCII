@@ -1,17 +1,24 @@
 from __future__ import annotations
 
 import csv
+import sys
 from collections.abc import Iterable, Iterator
 from itertools import chain, pairwise
 from pathlib import Path
-from typing import BinaryIO, TextIO, TypeAlias
+from typing import BinaryIO, TextIO
 
 from sortedcontainers import SortedSet
 
 from anarcii.utils import _open_msgpack_map_file
 
-NumberedResidue: TypeAlias = tuple[tuple[int, str], str]
-NumberedResidues: TypeAlias = list[NumberedResidue] | tuple[NumberedResidue, ...]
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+
+    NumberedResidue: TypeAlias = tuple[tuple[int, str], str]
+    NumberedResidues: TypeAlias = list[NumberedResidue] | tuple[NumberedResidue, ...]
+else:
+    NumberedResidue = tuple[tuple[int, str], str]
+    NumberedResidues = list[NumberedResidue] | tuple[NumberedResidue, ...]
 
 # For IMGT, insertions are numbered in reverse lexicographic order at these positions.
 imgt_reversed = 33, 61, 112
