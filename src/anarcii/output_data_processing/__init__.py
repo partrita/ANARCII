@@ -3,13 +3,28 @@ from __future__ import annotations
 import csv
 import sys
 from collections.abc import Iterable, Iterator
-from itertools import chain, pairwise
+from itertools import chain
 from pathlib import Path
 from typing import BinaryIO, TextIO
 
 from sortedcontainers import SortedSet
 
 from anarcii.utils import _open_msgpack_map_file
+
+if sys.version_info >= (3, 10):
+    from itertools import pairwise
+else:
+
+    def pairwise(iterable):
+        # pairwise('ABCDEFG') → AB BC CD DE EF FG
+
+        iterator = iter(iterable)
+        a = next(iterator, None)
+
+        for b in iterator:
+            yield a, b
+            a = b
+
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias

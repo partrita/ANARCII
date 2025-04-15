@@ -1,12 +1,27 @@
 from __future__ import annotations
 
+import sys
 import uuid
 from collections.abc import Iterator
-from itertools import chain, pairwise
+from itertools import chain
 from pathlib import Path
 from typing import Any, BinaryIO
 
 import msgpack
+
+if sys.version_info >= (3, 10):
+    from itertools import pairwise
+else:
+
+    def pairwise(iterable):
+        # pairwise('ABCDEFG') → AB BC CD DE EF FG
+
+        iterator = iter(iterable)
+        a = next(iterator, None)
+
+        for b in iterator:
+            yield a, b
+            a = b
 
 
 def to_msgpack(object: Any, path: Path | str | None) -> Path:
