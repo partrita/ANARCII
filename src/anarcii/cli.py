@@ -53,10 +53,8 @@ parser.add_argument(
 )
 
 
-def main():
-    # Define the argument parser
-    # Parse the arguments
-    args = parser.parse_args()
+def main(args=None):
+    args = parser.parse_args(args)
 
     # Initialize the model
     model = Anarcii(
@@ -86,11 +84,8 @@ def main():
 
     elif args.output.endswith(".csv"):
         model.to_csv(args.output)
-    elif args.output.endswith(".json"):
-        model.to_json(args.output)
-    # TODO:  Add msgpack support.
-    # elif args.output.endswith(".msgpack"):
-    #     model.to_msgpack(args.output)
+    elif args.output.endswith(".msgpack"):
+        model.to_msgpack(args.output)
     else:
         raise ValueError("Output file must end in .csv, or .json.")
 
