@@ -26,7 +26,7 @@ def anarcii_model(pytestconfig):
     "scheme",
     [
         "chothia",
-        # "imgt",
+        pytest.param("imgt", marks=pytest.mark.xfail),
         "martin",
         "kabat",
         "aho",

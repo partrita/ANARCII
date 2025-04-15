@@ -27,10 +27,10 @@ def anarcii_model(pytestconfig):
     "scheme",
     [
         "chothia",
-        # "imgt",
+        pytest.param("imgt", marks=pytest.mark.xfail),
         "martin",
         "kabat",
-        # "aho"
+        pytest.param("aho", marks=pytest.mark.xfail),
     ],
 )
 def test_files_are_identical(anarcii_model, tmp_path, scheme, pytestconfig):
