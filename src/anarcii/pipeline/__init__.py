@@ -97,7 +97,6 @@ class Anarcii:
         batch_size: int = 32,
         cpu: bool = False,
         ncpu: int = -1,
-        legacy_format: bool = False,  # legacy for old ANARCI
         verbose: bool = False,
         max_seqs_len=1024 * 100,
     ):
@@ -138,7 +137,7 @@ class Anarcii:
             else:
                 print("\nRecommended batch size for CPU: 8.\n")
 
-    def number(self, seqs: Input, legacy_format=False):
+    def number(self, seqs: Input):
         seqs, structure = coerce_input(seqs)
         if not structure:
             # Do not split sequences on delimiter characters if the input was in PDBx or
@@ -231,10 +230,7 @@ class Anarcii:
         if structure:
             write_pdbx_file(structure)
 
-        if legacy_format and not serialise:
-            return legacy_output(self._last_numbered_output, verbose=self.verbose)
-        else:
-            return self._last_numbered_output
+        return self._last_numbered_output
 
     def to_scheme(self, scheme="imgt"):
         # Check if there's output to save
@@ -256,7 +252,7 @@ class Anarcii:
                 g.write(packer.pack_map_header(n_seqs))
 
             print(
-                f"Converting {n_seqs} sequences to {scheme} "
+                f" Converting {n_seqs} sequences to {scheme} "
                 "scheme. This may take a while."
             )
 
@@ -268,13 +264,15 @@ class Anarcii:
                     for item in chain.from_iterable(converted_seqs.items()):
                         f.write(packer.pack(item))
 
-            print(f"Converted sequences saved to {self._last_converted_output}.")
+            print(f" Converted sequences saved to {self._last_converted_output}. \n")
+
+            self._alt_scheme = scheme
 
         else:
             self._last_converted_output = convert_number_scheme(
                 self._last_numbered_output, scheme
             )
-            print(f"Last output converted to {scheme}")
+            print(f"Last output converted to {scheme} \n")
 
             # The problem is we cannot write over last numbered output
             # Instead, the converted scheme is written to a new object
@@ -282,6 +280,33 @@ class Anarcii:
             self._alt_scheme = scheme
 
             return self._last_converted_output
+
+    def to_legacy(self):
+        """
+        Convert the last numbered output to a legacy format.
+        This follows the same logic as to_scheme, but uses the legacy_output function.
+        However it does not write to a file, it just returns the legacy output.
+        """
+        last_object = self._last_converted_output or self._last_numbered_output
+        last_scheme = self._alt_scheme or "imgt"
+        if last_object is None:
+            raise ValueError("No output to save. Run the model first.")
+
+        else:
+            if isinstance(last_object, Path):
+                print(
+                    f" Sequences are numbered in scheme: {last_scheme}\n"
+                    f" Converting first {self.max_seqs_len} sequences to legacy "
+                    "format. To convert more, increase the max_seqs_len parameter or "
+                    "iterate over the msgpack file using "
+                    "anarcii.utils.from_msgpack_map and apply the legacy_output "
+                    "function. For more details, see\n "
+                    "https://github.com/ALGW71/ANARCII-DEV/wiki/"
+                    "Allowed-input-formats#more-than-100k-sequences"
+                )
+                return legacy_output(next(from_msgpack_map(last_object)), self.verbose)
+            else:
+                return legacy_output(last_object, self.verbose)
 
     def to_msgpack(self, file_path):
         # 1. Model has not been run - raise error
