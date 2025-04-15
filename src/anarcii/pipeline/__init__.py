@@ -331,18 +331,14 @@ class Anarcii:
             raise ValueError("No output to save. Run the model first.")
 
         else:
-            if not isinstance(last_object, Path):
+            if isinstance(last_object, Path):
+                shutil.copy(last_object, file_path)
+
+            else:
                 to_msgpack(last_object, file_path)
                 print(
                     f"Last output saved to {file_path} in scheme: {self._alt_scheme}."
                 )
-
-            elif self._last_converted_output:
-                # Move converted msgpack file to the file path specified in argument.
-                shutil.copy(last_object, file_path)
-
-            else:
-                shutil.copy(last_object, file_path)
 
     def to_csv(self, file_path):
         """
