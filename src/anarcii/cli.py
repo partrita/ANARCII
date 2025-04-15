@@ -53,10 +53,8 @@ parser.add_argument(
 )
 
 
-def main():
-    # Define the argument parser
-    # Parse the arguments
-    args = parser.parse_args()
+def main(args=None):
+    args = parser.parse_args(args)
 
     # Initialize the model
     model = Anarcii(
