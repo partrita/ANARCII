@@ -17,8 +17,10 @@ if sys.version_info >= (3, 10):
     NumberedResidue: TypeAlias = tuple[tuple[int, str], str]
     NumberedResidues: TypeAlias = list[NumberedResidue] | tuple[NumberedResidue, ...]
 else:
+    from typing import Union
+
     NumberedResidue = tuple[tuple[int, str], str]
-    NumberedResidues = list[NumberedResidue] | tuple[NumberedResidue, ...]
+    NumberedResidues = Union[list[NumberedResidue], tuple[NumberedResidue, ...]]
 
 # For IMGT, insertions are numbered in reverse lexicographic order at these positions.
 imgt_reversed = 33, 61, 112
