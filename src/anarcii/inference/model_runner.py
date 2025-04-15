@@ -265,6 +265,7 @@ class ModelRunner:
                                 "query_start": None,
                                 "query_end": None,
                                 "error": error_msg or "Score less than cut off.",
+                                "scheme": "imgt",
                             }
                         )
                         # skip the rest of the loop.

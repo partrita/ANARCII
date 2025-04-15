@@ -15,6 +15,7 @@ from anarcii.inference.model_runner import CUTOFF_SCORE, ModelRunner
 from anarcii.inference.window_selector import WindowFinder
 from anarcii.input_data_processing import Input, coerce_input, split_sequences
 from anarcii.input_data_processing.sequences import SequenceProcessor
+from anarcii.output_data_processing import stream_msgpack_to_csv, write_csv
 from anarcii.output_data_processing.convert_to_legacy_format import legacy_output
 from anarcii.output_data_processing.schemes import convert_number_scheme
 from anarcii.pipeline.configuration import configure_cpus, configure_device
@@ -309,6 +310,9 @@ class Anarcii:
                 return legacy_output(last_object, self.verbose)
 
     def to_msgpack(self, file_path):
+        """
+        Convert or copy the last numbered output to a msgpack file of users choice.
+        """
         # 1. Model has not been run - raise error
         if self._last_numbered_output is None:
             raise ValueError("No output to save. Run the model first.")
@@ -332,13 +336,32 @@ class Anarcii:
 
         # 4. Model has been run and exceeds max_len (no conversion).
         elif isinstance(self._last_numbered_output, Path):
-            # Move the msgpack file to the file path specified in argument.
             shutil.copy(self._last_numbered_output, file_path)
 
         # 5. Model has been run and does not exceed max_len (no conversion).
         else:
             to_msgpack(self._last_numbered_output, file_path)
             print(f"Last output saved to {file_path}.")
+
+    def to_csv(self, file_path):
+        """
+        Convert the last numbered output to a CSV file.
+        Decide if the last numbered output is a path or a dict.
+        If conversion has taken place then write that to csv.
+        """
+        last_object = self._last_converted_output or self._last_numbered_output
+        if last_object is None:
+            raise ValueError("No output to save. Run the model first.")
+
+        else:
+            if isinstance(last_object, Path):
+                stream_msgpack_to_csv(last_object, file_path)
+
+            else:
+                write_csv(last_object, file_path)
+                print(
+                    f"Last output saved to {file_path} in scheme: {self._alt_scheme}."
+                )
 
     def number_with_type(self, seqs: dict[str, str], seq_type):
         model = ModelRunner(
