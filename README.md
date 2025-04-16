@@ -2,7 +2,7 @@
 
 For the user guide please read the Wiki page: 
 
-https://github.com/ALGW71/ANARCII-DEV/wiki
+https://github.com/oxpig/ANARCII/wiki
 
 
 
