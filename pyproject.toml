@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "anarcii"
-version = "2.0.0"
+version = "2.0.1"
 description = "A language model suite for numbering antigen receptor sequences."
 readme = "README.md"
 license-files = ["LICENCE"]
