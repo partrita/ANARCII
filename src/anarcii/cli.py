@@ -15,24 +15,44 @@ parser.add_argument(
     "--seq_type",
     type=str,
     default="antibody",
-    help="Sequence type (default: antibody).",
+    choices=["antibody", "tcr", "vnar", "vhh", "shark", "unknown"],
+    help=(
+        "Sequence type to process: antibody, tcr, vnar/vhh/shark or unknown"
+        "(default: antibody)."
+    ),
 )
 parser.add_argument(
     "-b",
     "--batch_size",
     type=int,
     default=512,
+    metavar="N",
     help="Batch size for processing (default: 512).",
 )
 parser.add_argument(
-    "-c", "--cpu", action="store_true", help="Run on CPU (default: False)."
+    "-c",
+    "--cpu",
+    action="store_true",
+    help="Run on CPU only, even if a GPU is available.",
 )
 parser.add_argument(
     "-n",
     "--ncpu",
     type=int,
     default=-1,
-    help="Number of CPU threads to use (default: 1).",
+    metavar="N",
+    help="Number of CPU threads to use.  If -1 (the default), ANARCII will use one "
+    "thread per available CPU core.",
+)
+parser.add_argument(
+    "--max_seqs_len",
+    type=int,
+    default=102400,
+    metavar="N",
+    help=(
+        "Maximum number of sequences to process before moving to batch mode and "
+        "saving the numbered sequences in MessagePack file (default: 102400)."
+    ),
 )
 parser.add_argument(
     "-m",
@@ -43,11 +63,21 @@ parser.add_argument(
     help="Mode for running the model (default: accuracy).",
 )
 parser.add_argument(
+    "--scheme",
+    type=str,
+    choices=["martin", "kabat", "chothia", "imgt", "aho"],
+    default="imgt",
+    help=(
+        "Numbering scheme to use: martin, kabat, chothia, imgt, or aho (default: imgt)."
+    ),
+)
+parser.add_argument(
     "-o",
     "--output",
     type=str,
     default=None,
-    help="Specify the output file (must end in .txt, .csv or .json).",
+    metavar="FILE",
+    help="Specify the output file (must end in .csv or .msgpack).",
 )
 parser.add_argument(
     "-v", "--verbose", action="store_true", help="Enable verbose output."
@@ -68,10 +98,12 @@ def main(args=None):
         ncpu=args.ncpu,
         mode=args.mode,
         verbose=args.verbose,
+        max_seqs_len=args.max_seqs_len,
     )
 
     try:
-        out = model.number(args.input)
+        model.number(args.input)
+        out = model.to_scheme(args.scheme)
     except TypeError as e:
         sys.exit(str(e))
 
@@ -82,6 +114,9 @@ def main(args=None):
                 f" ID: {name}\n",
                 f"Chain: {query['chain_type']}\n",
                 f"Score: {query['score']}\n",
+                f"Query start: {query['query_start']}\n",
+                f"Query end: {query['query_end']}\n",
+                f"Scheme: {query['scheme']}\n",
                 f"Error: {query['error']}",
             )
             print({"".join(map(str, n)).strip(): res for n, res in query["numbering"]})
