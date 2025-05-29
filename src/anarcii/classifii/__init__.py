@@ -116,7 +116,7 @@ class Classifii:
         classes = self._classify(dl)
 
         grouped_sequences = {type_tokens[key]: {} for key in set(classes)}
-        for classification, (name, sequence) in zip(classes, sequences.items()):
+        for classification, (name, sequence) in zip(classes, sequences.items(), strict=False):
             grouped_sequences[type_tokens[classification]][name] = sequence
 
         return grouped_sequences

@@ -51,7 +51,7 @@ def conversion_function(anarcii_numbered_seq, scheme_name):
     insert_count = 0
     last_num = 0
 
-    for num, state, letter in zip(query_nums, query_state, letters):
+    for num, state, letter in zip(query_nums, query_state, letters, strict=False):
         # What does this do???
         num_region_index = region_index_dict[region_string[num - 1]]
         num_conversion_state = state_string[num - 1]

@@ -100,7 +100,7 @@ class ModelRunner:
         # NB: Provide a list of recommended batch sizes based on RAM and architecture
 
         dl = dataloader(self.batch_size, list(tokenised_seqs.values()))
-        numbering = dict(zip(tokenised_seqs, self._predict_numbering(dl)))
+        numbering = dict(zip(tokenised_seqs, self._predict_numbering(dl), strict=False))
 
         # Add offsets, where necessary.
         for key, value in offsets.items():
@@ -578,7 +578,7 @@ class ModelRunner:
                     # Successful - append.
                     numbering.append(
                         {
-                            "numbering": list(zip(nums, residues)),
+                            "numbering": list(zip(nums, residues, strict=False)),
                             "chain_type": str(pred_tokens[batch_no, 1]),
                             "score": normalized_score,
                             "query_start": start_index,

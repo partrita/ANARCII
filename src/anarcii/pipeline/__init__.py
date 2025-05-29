@@ -444,7 +444,7 @@ def renumber_pdbx(
     # Drop gap marks ('-') from the numbered sequence.  They do not exist in the file.
     no_gaps = ((num, res) for num, res in numbered["numbering"] if res != "-")
     # Get the residue numbering and one-letter peptide sequence as separate tuples.
-    numbers, sequence = zip(*no_gaps)
+    numbers, sequence = zip(*no_gaps, strict=False)
     # Find the number of the first numbered residue.
     (first_number, _), *_, (last_number, _) = numbers
 
@@ -461,7 +461,7 @@ def renumber_pdbx(
     numbers = chain(backward_fill, numbers, forward_fill)
 
     # Residue by residue, write the new numbering.
-    for residue, number in zip(structure[model_index][chain_id], numbers):
+    for residue, number in zip(structure[model_index][chain_id], numbers, strict=False):
         residue.seqid = gemmi.SeqId(*number)
 
 

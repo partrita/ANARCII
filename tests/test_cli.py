@@ -144,7 +144,7 @@ def test_cli_files(run_cli, args, pytestconfig, tmp_path):
     )
 
     # Compare each item (assuming the JSON is a list of [number, data] pairs)
-    for expected_item, test_item in zip(json_expected, msgpack_test):
+    for expected_item, test_item in zip(json_expected, msgpack_test, strict=False):
         expected_number, expected_data = expected_item
         test_number, test_data = test_item["numbering"], test_item
 

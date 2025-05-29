@@ -58,7 +58,7 @@ def anarcii_model(tmp_path_factory, pytestconfig) -> Path:
 
 
 @pytest.mark.parametrize(
-    "reference,test", zip(reference_paths, test_paths), ids=raw_filenames
+    "reference,test", zip(reference_paths, test_paths, strict=False), ids=raw_filenames
 )
 def test_files_are_identical(pytestconfig, anarcii_model, reference, test):
     """Generate and check renumbered PDB files."""

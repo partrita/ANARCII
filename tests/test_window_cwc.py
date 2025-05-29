@@ -42,7 +42,7 @@ def test_files_are_identical(anarcii_model, tmp_path, pytestconfig):
     )
 
     # Iterate over both lists concurrently
-    for expected_item, test_item in zip(expected, test):
+    for expected_item, test_item in zip(expected, test, strict=False):
         expected_number, expected_data = expected_item
         test_number, test_data = test_item["numbering"], test_item
 
